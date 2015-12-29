@@ -119,9 +119,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
     protected void initCaptureService() {
 
-        // TODO
-        // Start service on boot is enable
-        // - http://stackoverflow.com/questions/4562734/android-starting-service-at-boot-time
+        // Service may on boot if enable see BootCompletedIntentReceiver
 
         final Context context = this;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());

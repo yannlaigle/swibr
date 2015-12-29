@@ -60,6 +60,8 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <!-- Keeps the processor from sleeping when a capture is performed. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Used to start CaptureService on Boot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <uses-permission xmlns:tools="http://schemas.android.com/tools"
         android:name="android.permission.PACKAGE_USAGE_STATS"
@@ -120,6 +122,11 @@
 
         <service android:name=".ui.capture.CaptureService" android:exported="true" />
 
+        <receiver android:name=".ui.capture.BootCompletedIntentReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".data.SyncService$SyncOnConnectionAvailable"
