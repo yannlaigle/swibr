@@ -20,4 +20,6 @@
 
     <string name="ServiceNofif">Swibr Service Running</string>
     <string name="ServiceNofifText">Tap to return to Swibr.</string>
+    <string name="CaptureNofif" />
+    <string name="CaptureNofifText" />
 </resources>

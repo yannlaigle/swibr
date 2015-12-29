@@ -73,15 +73,35 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         }
 
         initUsageStats();
-        initFloatingSwitch();
+        initCaptureService();
+        initTutorial();
+    }
+
+    protected void initTutorial() {
+
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        final boolean runTutorialOnStart = prefs.getBoolean("runTutorialOnStart", true);
+
+        if (runTutorialOnStart) {
+
+            // Disable runTutorialOnStart is enable to avoid loop
+            SharedPreferences.Editor prefEdit = prefs.edit();
+            prefEdit.putBoolean("runTutorialOnStart", false);
+            prefEdit.commit();
+
+            Intent i = new Intent();
+            i.setClass(MainActivity.this, TutotialActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        }
     }
 
     protected void initUsageStats() {
 
         final Context context = this;
-        boolean isNotificationEnabled = AndroidComponentUtil.isUsageStatsEnabled(context);
+        boolean isUsageStatsEnabled = AndroidComponentUtil.isUsageStatsEnabled(context);
 
-        if(!isNotificationEnabled) {
+        if(!isUsageStatsEnabled) {
 
             new AlertDialog.Builder(this)
                 .setTitle(R.string.AuthDialog)
@@ -90,28 +110,34 @@ public class MainActivity extends BaseActivity implements MainMvpView {
                 .setNegativeButton(R.string.AuthDialogCancelBtn, null)
                 .setPositiveButton(R.string.AuthDialogSettings, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+                    startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
                     }
                 })
                 .show();
         }
     }
 
-    protected void initFloatingSwitch() {
+    protected void initCaptureService() {
+
+        // TODO
+        // Start service on boot is enable
+        // - http://stackoverflow.com/questions/4562734/android-starting-service-at-boot-time
 
         final Context context = this;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        final boolean captureServiceEnabled = prefs.getBoolean("runCaptureService", false);
+
         final Switch floatingSwitch = (Switch) findViewById(R.id.floating_switch);
-
-        if (prefs.getString("ISRUNNING", "floating_switch").equals("true")){
-            floatingSwitch.setChecked(true);
-        } else {
-            floatingSwitch.setChecked(false);
-        }
-
+        floatingSwitch.setChecked(captureServiceEnabled);
         floatingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                // Update CaptureService value
+                SharedPreferences.Editor prefEdit = prefs.edit();
+                prefEdit.putBoolean("runCaptureService", isChecked);
+                prefEdit.commit();
+
                 if (isChecked) {
 
                     checkDrawOverlayPermission();

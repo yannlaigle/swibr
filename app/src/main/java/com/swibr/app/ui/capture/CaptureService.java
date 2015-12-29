@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.Display;
@@ -20,6 +21,8 @@ import android.widget.ImageView;
 import com.swibr.app.R;
 import com.swibr.app.ui.main.MainActivity;
 
+import java.io.File;
+
 /**
  * Created by hthetiot on 12/29/15.
  */
@@ -29,11 +32,27 @@ public class CaptureService extends Service {
 
     private ImageView floatingBtn;
     private WindowManager mWindowManager;
+    private IBinder mBinder = new MyBinder();
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        super.onRebind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return true;
+    }
+
+    public class MyBinder extends Binder {
+        CaptureService getService() {
+            return CaptureService.this;
+        }
     }
 
     @Override
@@ -135,7 +154,6 @@ public class CaptureService extends Service {
         startActivity(i);
     }
 
-    @SuppressLint("NewApi")
     private void startNotification() {
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -147,12 +165,36 @@ public class CaptureService extends Service {
                 .setAutoCancel(false)
                 .setContentTitle(getString(R.string.ServiceNofif))
                 .setContentText(getString(R.string.ServiceNofifText))
-                .setSmallIcon(R.drawable.swibr_icon)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(contentIntent);
 
         Notification swibrNotification = builder.build();
         swibrNotification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE | Notification.FLAG_NO_CLEAR;
         startForeground(2, swibrNotification);
+    }
+
+    private void captureNotification(File image) {
+
+        // TODO
+        // - share
+        // - open
+        // - cancel
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        final Notification.Builder builder = new Notification.Builder(this);
+        builder.setCategory(Notification.CATEGORY_SERVICE)
+                .setVisibility(-1)
+                .setAutoCancel(false)
+                .setContentTitle(getString(R.string.CaptureNofif))
+                .setContentText(getString(R.string.CaptureNofifText))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(contentIntent);
+
+        Notification swibrNotification = builder.build();
+        swibrNotification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE | Notification.FLAG_NO_CLEAR;
+        startForeground(3, swibrNotification);
     }
 
     @Override

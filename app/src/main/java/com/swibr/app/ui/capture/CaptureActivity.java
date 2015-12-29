@@ -1,6 +1,8 @@
 package com.swibr.app.ui.capture;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -23,6 +25,7 @@ import android.view.Display;
 import android.widget.Toast;
 
 import com.swibr.app.R;
+import com.swibr.app.ui.main.MainActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -140,12 +143,16 @@ public class CaptureActivity extends Activity {
                 Log.i(TAG, "Swibr image completed: " + newImage.getAbsolutePath());
                 Toast.makeText(context, "Swibr capture succeeded!", Toast.LENGTH_LONG).show();
 
+                // Stop Capture
+                mImageReader.close();
+
             } catch (Exception e) {
                 Log.e(TAG, "Swibr image capture fail cause", e);
                 Toast.makeText(context, "Swibr capture failed!", Toast.LENGTH_LONG).show();
             }
         }
     }
+
 
     private File getImageFile() throws IOException {
 

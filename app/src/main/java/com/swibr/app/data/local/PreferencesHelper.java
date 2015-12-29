@@ -11,7 +11,7 @@ import com.swibr.app.injection.ApplicationContext;
 @Singleton
 public class PreferencesHelper {
 
-    public static final String PREF_FILE_NAME = "android_boilerplate_pref_file";
+    public static final String PREF_FILE_NAME = "swibr_pref_file";
 
     private final SharedPreferences mPref;
 
