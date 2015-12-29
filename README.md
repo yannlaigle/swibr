@@ -30,7 +30,7 @@ Libraries and tools included:
 
 This project follows swibr's Android architecture guidelines that are based on [MVP (Model View Presenter)](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93presenter). Read more about them [here](https://github.com/swibr/android-guidelines/blob/master/architecture_guidelines/android_architecture.md).
 
-![](https://github.com/swibr/android-guidelines/raw/master/architecture_guidelines/architecture_diagram.png)
+![](https://github.com/Sylaps/swibr/blob/master/images/architecture_diagram.png)
 
 ### How to implement a new screen following MVP
 
