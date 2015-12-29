@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Swibr</string>
+    <string name="action_settings">Settings</string>
+    <string name="dialog_action_ok">OK</string>
+    <string name="dialog_action_cancel">Cancel</string>
+    <string name="dialog_error_title">Sorry</string>
+    <string name="empty_ribots">There aren\'t any Swibr</string>
+    <string name="error_loading_ribots">There was a problem loading the Swibr</string>
+
+    <string name="AuthDialog">Authorization</string>
+    <string name="AuthDialogText">To help Swibr to remember the articles that interest you, you can allow the application to access Usages Stats of your device. However, nothing forces you to do it.</string>
+    <string name="AuthDialogCancelBtn">Cancel</string>
+    <string name="AuthDialogSettings">Settings</string>
+
+    <string name="FloatingSwitchDialog">Swibr Shortcut Activated</string>
+    <string name="FloatingSwitchDialogText">You can now save the articles you want.</string>
+    <string name="FloatingSwitchDialogBtn">Ok</string>
+
+    <string name="CaptureAction">Swibr Capture!</string>
+
+    <string name="ServiceNofif">Swibr Service Running</string>
+    <string name="ServiceNofifText">Tap to return to Swibr.</string>
+</resources>
