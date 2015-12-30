@@ -48,7 +48,10 @@ public class SyncService extends Service {
             return START_NOT_STICKY;
         }
 
-        if (mSubscription != null && !mSubscription.isUnsubscribed()) mSubscription.unsubscribe();
+        if (mSubscription != null && !mSubscription.isUnsubscribed()) {
+            mSubscription.unsubscribe();
+        }
+
         mSubscription = mDataManager.syncSwibrs()
                 .subscribeOn(Schedulers.io())
                 .subscribe(new Observer<Swibr>() {

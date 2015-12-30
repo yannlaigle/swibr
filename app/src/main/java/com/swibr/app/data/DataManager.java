@@ -8,6 +8,8 @@ import javax.inject.Singleton;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
+import rx.functions.Func2;
+
 import com.swibr.app.data.local.DatabaseHelper;
 import com.swibr.app.data.local.PreferencesHelper;
 import com.swibr.app.data.model.Swibr;
@@ -36,11 +38,14 @@ public class DataManager {
     }
 
     public Observable<Swibr> syncSwibrs() {
+
+        // TODO push new items
+
         return mSwibrsService.getSwibrs()
                 .concatMap(new Func1<List<Swibr>, Observable<Swibr>>() {
                     @Override
                     public Observable<Swibr> call(List<Swibr> swibrs) {
-                        return mDatabaseHelper.setSwibrs(swibrs);
+                    return mDatabaseHelper.setSwibrs(swibrs);
                     }
                 });
     }
@@ -49,6 +54,9 @@ public class DataManager {
         return mDatabaseHelper.getSwibrs().distinct();
     }
 
+    public Observable<Swibr> addSwibr(Swibr newSwibr) {
+        return mDatabaseHelper.saveSwibr(newSwibr);
+    }
 
     /// Helper method to post events from doOnCompleted.
     private Action0 postEventAction(final Object event) {

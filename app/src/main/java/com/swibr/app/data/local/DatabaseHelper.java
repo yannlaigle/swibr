@@ -55,6 +55,26 @@ public class DatabaseHelper {
         });
     }
 
+    public Observable<Swibr> saveSwibr(final Swibr newSwibr) {
+        return Observable.create(new Observable.OnSubscribe<Swibr>() {
+            @Override
+            public void call(Subscriber<? super Swibr> subscriber) {
+                if (subscriber.isUnsubscribed()) return;
+                BriteDatabase.Transaction transaction = mDb.newTransaction();
+                try {
+                    long result = mDb.insert(Db.SwibrProfileTable.TABLE_NAME,
+                            Db.SwibrProfileTable.toContentValues(newSwibr.profile),
+                            SQLiteDatabase.CONFLICT_REPLACE);
+                    if (result >= 0) subscriber.onNext(newSwibr);
+                    transaction.markSuccessful();
+                    subscriber.onCompleted();
+                } finally {
+                    transaction.end();
+                }
+            }
+        });
+    }
+
     public Observable<Swibr> setSwibrs(final Collection<Swibr> newSwibrs) {
         return Observable.create(new Observable.OnSubscribe<Swibr>() {
             @Override
@@ -84,7 +104,7 @@ public class DatabaseHelper {
                 .mapToList(new Func1<Cursor, Swibr>() {
                     @Override
                     public Swibr call(Cursor cursor) {
-                        return new Swibr(Db.SwibrProfileTable.parseCursor(cursor));
+                    return new Swibr(Db.SwibrProfileTable.parseCursor(cursor));
                     }
                 });
     }

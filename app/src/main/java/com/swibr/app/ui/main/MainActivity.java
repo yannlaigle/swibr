@@ -16,7 +16,9 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -24,6 +26,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import com.swibr.app.R;
 import com.swibr.app.data.SyncService;
+import com.swibr.app.data.model.Name;
+import com.swibr.app.data.model.Profile;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.capture.CaptureService;
@@ -75,6 +79,29 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         initUsageStats();
         initCaptureService();
         initTutorial();
+
+        //addSwibr();
+    }
+
+    private void addSwibr() {
+
+        String uniqueSuffix = "r" +  UUID.randomUUID().toString();
+
+        Name name = new Name();
+        name.first = "Name-" + uniqueSuffix;
+        name.last = "Surname-" + uniqueSuffix;
+
+        Profile profile = new Profile();
+        profile.email = "email" + uniqueSuffix + "@example.com";
+        profile.name = name;
+        profile.dateOfBirth = new Date();
+        profile.hexColor = "#0066FF";
+        profile.avatar = "http://api.ribot.io/images/" + uniqueSuffix;
+        profile.bio = UUID.randomUUID().toString();
+
+        Swibr swibr = new Swibr(profile);
+
+        mMainPresenter.addSwibr(swibr);
     }
 
     protected void initTutorial() {
@@ -124,6 +151,17 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         final Context context = this;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final boolean captureServiceEnabled = prefs.getBoolean("runCaptureService", false);
+
+        // Start Service if not already running
+        if (
+            captureServiceEnabled &&
+                AndroidComponentUtil.isServiceRunning(context, CaptureService.class) == false
+        ) {
+
+            checkDrawOverlayPermission();
+
+            startService(new Intent(MainActivity.this, CaptureService.class));
+        }
 
         final Switch floatingSwitch = (Switch) findViewById(R.id.floating_switch);
         floatingSwitch.setChecked(captureServiceEnabled);
