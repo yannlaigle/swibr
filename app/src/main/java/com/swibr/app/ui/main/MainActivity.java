@@ -9,9 +9,16 @@ import android.net.Uri;
 import android.os.*;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -37,17 +44,19 @@ import com.swibr.app.util.DialogFactory;
 public class MainActivity extends BaseActivity implements MainMvpView {
 
 
-    private static final String TAG = CaptureService.class.getName();
-
     private static int REQUEST_CODE = 1000;
-
-    private static final String EXTRA_TRIGGER_SYNC_FLAG =
-            "com.swibr.app.ui.main.MainActivity.EXTRA_TRIGGER_SYNC_FLAG";
+    private static final String TAG = CaptureService.class.getName();
+    private static final String EXTRA_TRIGGER_SYNC_FLAG = "com.swibr.app.ui.main.MainActivity.EXTRA_TRIGGER_SYNC_FLAG";
 
     @Inject MainPresenter mMainPresenter;
     @Inject SwibrsAdapter mSwibrsAdapter;
 
     @Bind(R.id.recycler_view) RecyclerView mRecyclerView;
+
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private ImageButton mDrawerBtn;
+    private String[] mDrawerTitles;
 
     /**
      * Return an Intent to start this Activity.
@@ -76,14 +85,57 @@ public class MainActivity extends BaseActivity implements MainMvpView {
             startService(SyncService.getStartIntent(this));
         }
 
+
+        initTutorial();
+
+        setupDrawer();
+
         initUsageStats();
         initCaptureService();
-        initTutorial();
 
         //addSwibr();
     }
 
+    private void setupDrawer() {
+
+        // TODO better design
+        // - http://codetheory.in/android-navigation-drawer/
+        // - http://blog.teamtreehouse.com/add-navigation-drawer-android
+
+        mDrawerBtn = (ImageButton)findViewById(R.id.drawer_btn);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+        mDrawerTitles = getResources().getStringArray(R.array.menu_items);
+        
+        // Set the adapter for the list view
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+                R.layout.drawer_list_item, mDrawerTitles));
+        // Set the list's click listener
+        // mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
+        mDrawerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+            mDrawerLayout.openDrawer(Gravity.LEFT);
+            }
+        });
+    }
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+
+            Toast.makeText(MainActivity.this, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void addSwibr() {
+
+        // TODO
+        // - http://open.blogs.nytimes.com/2014/08/18/getting-groovy-with-reactive-android/
+        // - https://www.youtube.com/watch?v=k3D0cWyNno4
+        // - https://github.com/square/sqlbrite/blob/master/sqlbrite-sample
 
         String uniqueSuffix = "r" +  UUID.randomUUID().toString();
 

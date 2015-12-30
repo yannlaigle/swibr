@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="menu_items">
+        <item>Contact the team</item>
+        <item>Usage settings</item>
+        <item>View the tutorial</item>
+    </string-array>
+</resources>

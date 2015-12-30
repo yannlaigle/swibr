@@ -70,6 +70,7 @@ public class SyncService extends Service {
 
                     @Override
                     public void onNext(Swibr swibr) {
+
                     }
                 });
 
@@ -99,5 +100,4 @@ public class SyncService extends Service {
             }
         }
     }
-
 }
