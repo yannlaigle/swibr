@@ -3,6 +3,7 @@ package com.swibr.app.injection.component;
 import dagger.Component;
 import com.swibr.app.injection.PerActivity;
 import com.swibr.app.injection.module.ActivityModule;
+import com.swibr.app.ui.capture.CaptureActivity;
 import com.swibr.app.ui.main.MainActivity;
 
 /**
@@ -14,4 +15,5 @@ public interface ActivityComponent {
 
     void inject(MainActivity mainActivity);
 
+    void inject(CaptureActivity captureActivity);
 }

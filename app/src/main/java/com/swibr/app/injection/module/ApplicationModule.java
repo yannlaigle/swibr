@@ -9,6 +9,8 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+
+import com.swibr.app.data.remote.OcrService;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.injection.ApplicationContext;
 
@@ -44,6 +46,12 @@ public class ApplicationModule {
     @Singleton
     SwibrsService provideSwibrsService() {
         return SwibrsService.Creator.newSwibrsService();
+    }
+
+    @Provides
+    @Singleton
+    OcrService provideOcrService() {
+        return OcrService.Creator.newOcrService();
     }
 
 }

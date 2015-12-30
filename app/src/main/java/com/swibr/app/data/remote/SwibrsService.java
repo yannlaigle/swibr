@@ -16,6 +16,13 @@ public interface SwibrsService {
 
     String ENDPOINT = "http://melchizetech.com/swibr/api/";
 
+
+    // TODO
+    // - http://open.blogs.nytimes.com/2014/08/18/getting-groovy-with-reactive-android/
+    // - https://www.youtube.com/watch?v=k3D0cWyNno4
+    // - https://github.com/square/sqlbrite/blob/master/sqlbrite-sample
+
+
     @GET("swibrs")
     Observable<List<Swibr>> getSwibrs();
 

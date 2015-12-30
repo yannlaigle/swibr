@@ -11,6 +11,7 @@ import dagger.Module;
 import dagger.Provides;
 import com.swibr.app.data.DataManager;
 import com.swibr.app.data.remote.SwibrsService;
+import com.swibr.app.data.remote.OcrService;
 import com.swibr.app.injection.ApplicationContext;
 
 import static org.mockito.Mockito.mock;
@@ -59,4 +60,9 @@ public class ApplicationTestModule {
         return mock(SwibrsService.class);
     }
 
+    @Provides
+    @Singleton
+    OcrService provideOcrService() {
+        return mock(OcrService.class);
+    }
 }

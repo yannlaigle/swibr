@@ -125,18 +125,16 @@ public class CaptureService extends Service {
                         break;
 
                     case MotionEvent.ACTION_UP:
-                        x2 = event.getRawX();
-                        deltaX = x2 - x1;
-
-                        if (Math.abs(deltaX) > MIN_DISTANCE) {
-                            requestCapture();
-                        }
-
-                        // Reset btn state
                         floatingBtn.setImageResource(R.drawable.btn_standby);
                         paramsF.x = 0;
                         paramsF.y = heightPoint;
                         mWindowManager.updateViewLayout(floatingBtn, paramsF);
+
+                        x2 = event.getRawX();
+                        deltaX = x2 - x1;
+                        if (Math.abs(deltaX) > MIN_DISTANCE) {
+                            requestCapture();
+                        }
                         break;
                 }
 

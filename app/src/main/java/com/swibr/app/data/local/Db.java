@@ -15,20 +15,31 @@ public class Db {
     public abstract static class SwibrProfileTable {
         public static final String TABLE_NAME = "swibr_profile";
 
-
         /*
-        id
-        deviceId
-        capture
-        ocrResults
-        creation
-        update
-        context
-        url
-
-
-
-         */
+        {
+            uuid:
+            capture:
+            state: capture, analyze, done
+            creation:
+            update:
+            analyze: {
+                text:
+                keywords:
+                colors:
+                urls:
+            },
+            context:{
+                appName:
+                url:
+                date:
+            },
+            profile: {
+                uuid:
+                device:
+                location:
+            }
+        }
+        */
 
         public static final String COLUMN_EMAIL = "email";
         public static final String COLUMN_FIRST_NAME = "first_name";

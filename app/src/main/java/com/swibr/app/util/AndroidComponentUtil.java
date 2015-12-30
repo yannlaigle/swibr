@@ -7,9 +7,16 @@ import android.app.AppOpsManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
+
+import java.io.File;
 
 public final class AndroidComponentUtil {
+
+    private static final String TAG = AndroidComponentUtil.class.getName();
 
     public static void toggleComponent(Context context, Class componentClass, boolean enable) {
         ComponentName componentName = new ComponentName(context, componentClass);
@@ -29,6 +36,23 @@ public final class AndroidComponentUtil {
             }
         }
         return false;
+    }
+
+    public static boolean isRunningOnEmulator() {
+        return "google_sdk".equals(Build.PRODUCT) || Build.FINGERPRINT.startsWith("generic");
+    }
+
+    public void publishImageFile(Context context, File imageFile) {
+        // Tell the framework, so the image will be in the gallery
+        MediaScannerConnection.scanFile(context,
+            new String[]{imageFile.getAbsolutePath()},
+            new String[]{"image/png"},
+            new MediaScannerConnection.OnScanCompletedListener() {
+                public void onScanCompleted(String path, Uri uri) {
+                    Log.i(TAG, "Scanned " + path + ":");
+                    Log.i(TAG, "-> uri=" + uri);
+                }
+            });
     }
 
     public static boolean isUsageStatsEnabled(Context context) {

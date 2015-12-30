@@ -85,7 +85,6 @@ public class MainActivity extends BaseActivity implements MainMvpView {
             startService(SyncService.getStartIntent(this));
         }
 
-
         initTutorial();
 
         setupDrawer();
@@ -128,32 +127,6 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
             Toast.makeText(MainActivity.this, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void addSwibr() {
-
-        // TODO
-        // - http://open.blogs.nytimes.com/2014/08/18/getting-groovy-with-reactive-android/
-        // - https://www.youtube.com/watch?v=k3D0cWyNno4
-        // - https://github.com/square/sqlbrite/blob/master/sqlbrite-sample
-
-        String uniqueSuffix = "r" +  UUID.randomUUID().toString();
-
-        Name name = new Name();
-        name.first = "Name-" + uniqueSuffix;
-        name.last = "Surname-" + uniqueSuffix;
-
-        Profile profile = new Profile();
-        profile.email = "email" + uniqueSuffix + "@example.com";
-        profile.name = name;
-        profile.dateOfBirth = new Date();
-        profile.hexColor = "#0066FF";
-        profile.avatar = "http://api.ribot.io/images/" + uniqueSuffix;
-        profile.bio = UUID.randomUUID().toString();
-
-        Swibr swibr = new Swibr(profile);
-
-        mMainPresenter.addSwibr(swibr);
     }
 
     protected void initTutorial() {

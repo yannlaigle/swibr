@@ -37,14 +37,6 @@ public class MainPresenter extends BasePresenter<MainMvpView> {
         }
     }
 
-    public void addSwibr(Swibr newSwibr) {
-        checkViewAttached();
-        mDataManager.addSwibr(newSwibr)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe();
-    }
-
     public void loadSwibrs() {
         checkViewAttached();
         mSubscription = mDataManager.getSwibrs()
