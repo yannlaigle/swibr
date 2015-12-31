@@ -6,7 +6,7 @@
         <item name="colorAccent">@color/accent</item>
     </style>
 
-    <style name="SwibrTheme.Transparent" parent="android:Theme">
+    <style name="SwibrTheme.Transparent" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>
