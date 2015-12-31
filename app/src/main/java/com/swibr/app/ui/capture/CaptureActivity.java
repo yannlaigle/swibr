@@ -36,16 +36,13 @@ import com.swibr.app.data.remote.OcrService;
 import com.swibr.app.injection.component.ActivityComponent;
 import com.swibr.app.injection.component.DaggerActivityComponent;
 import com.swibr.app.injection.module.ActivityModule;
+import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.ProgressRequestBody;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.UUID;
@@ -62,7 +59,7 @@ import rx.schedulers.Schedulers;
 /**
  * Created by hthetiot on 12/29/15.
  */
-public class CaptureActivity extends Activity {
+public class CaptureActivity extends BaseActivity {
 
     private static final String TAG = CaptureActivity.class.getName();
 
@@ -76,17 +73,6 @@ public class CaptureActivity extends Activity {
     private ImageReader mImageReader;
     private int mWidth;
     private int mHeight;
-    private ActivityComponent mActivityComponent;
-
-    public ActivityComponent getActivityComponent() {
-        if (mActivityComponent == null) {
-            mActivityComponent = DaggerActivityComponent.builder()
-                    .activityModule(new ActivityModule(this))
-                    .applicationComponent(SwibrApplication.get(this).getComponent())
-                    .build();
-        }
-        return mActivityComponent;
-    }
 
     @Inject DataManager mDataManager;
     @Inject OcrService mOcrService;
@@ -97,8 +83,6 @@ public class CaptureActivity extends Activity {
         super.onCreate(savedInstanceState);
         getActivityComponent().inject(this);
         setContentView(R.layout.activity_capture);
-
-
 
         // Get the default public pictures directory
         mPicturesDirectory = Environment.getExternalStoragePublicDirectory(
@@ -279,10 +263,11 @@ public class CaptureActivity extends Activity {
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
-        uploadImageFile(file);
+        // Analyze File
+        analyzeImageFile(newSwibr, file);
     }
 
-    private void uploadImageFile(File file) {
+    private void analyzeImageFile(Swibr newSwibr, File file) {
 
         ProgressRequestBody requestBody = ProgressRequestBody.createImage(
                 MediaType.parse("multipart/form-data"),
@@ -306,13 +291,14 @@ public class CaptureActivity extends Activity {
                 }
         );
 
-        String mode = "document_photo";
-        String apikey = "b2791569-a598-49ca-8ff6-8bcbe66984de";
+        String mode = getString(R.string.havenondemand_ocr_mode);
+        String apikey = getString(R.string.havenondemand_apikey);
         Call<ResponseBody> call = mOcrService.upload(requestBody, mode, apikey);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+
                 try {
                     String jsonData = response.body().string();
                     Log.v(TAG, jsonData.toString());
