@@ -1,4 +1,4 @@
-package com.swibr.app.ui.main;
+package com.swibr.app.ui.tutorial;
 
 import android.os.Bundle;
 
@@ -16,7 +16,7 @@ import butterknife.ButterKnife;
 /**
  * Created by hthetiot on 12/29/15.
  */
-public class TutotialActivity extends BaseActivity {
+public class TutorialActivity extends BaseActivity {
 
     @Bind(R.id.exit_tuto) Button mExitTuto;
     @Bind(R.id.view_fliper) ViewFlipper viewFlipper;

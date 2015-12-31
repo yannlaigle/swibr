@@ -23,9 +23,7 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -33,11 +31,10 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import com.swibr.app.R;
 import com.swibr.app.data.SyncService;
-import com.swibr.app.data.model.Name;
-import com.swibr.app.data.model.Profile;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.capture.CaptureService;
+import com.swibr.app.ui.tutorial.TutorialActivity;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.DialogFactory;
 
@@ -77,6 +74,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mRecyclerView.setAdapter(mSwibrsAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mMainPresenter.attachView(this);
+        mMainPresenter.loadSwibrs();
 
         if (getIntent().getBooleanExtra(EXTRA_TRIGGER_SYNC_FLAG, true)) {
             startService(SyncService.getStartIntent(this));
@@ -124,7 +122,6 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         // - http://codetheory.in/android-navigation-drawer/
         // - http://blog.teamtreehouse.com/add-navigation-drawer-android
 
-
         mDrawerBtn = (ImageButton)findViewById(R.id.drawer_btn);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -160,8 +157,8 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final boolean runTutorialOnStart = prefs.getBoolean("runTutorialOnStart", true);
 
-        if (runTutorialOnStart) {
-        //if (true) {
+        //if (runTutorialOnStart) {
+        if (true) {
 
             // Disable runTutorialOnStart is enable to avoid loop
             SharedPreferences.Editor prefEdit = prefs.edit();
@@ -169,12 +166,9 @@ public class MainActivity extends BaseActivity implements MainMvpView {
             prefEdit.commit();
 
             Intent i = new Intent();
-            i.setClass(MainActivity.this, TutotialActivity.class);
+            i.setClass(MainActivity.this, TutorialActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
-        } else {
-
-            mMainPresenter.loadSwibrs();
         }
     }
 
@@ -224,22 +218,13 @@ public class MainActivity extends BaseActivity implements MainMvpView {
      */
     protected void initCaptureService() {
 
-        // Service may on boot if enable see CaptureIntentReceiver
-
         final Context context = this;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final boolean captureServiceEnabled = prefs.getBoolean("runCaptureService", false);
-
-        // Start Service if not already running and active
-        if (
-            captureServiceEnabled &&
-                AndroidComponentUtil.isServiceRunning(context, CaptureService.class) == false
-        ) {
-            startCaptureService();
-        }
+        final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
 
         final Switch floatingSwitch = (Switch) findViewById(R.id.floating_switch);
-        floatingSwitch.setChecked(captureServiceEnabled);
+        floatingSwitch.setChecked(captureServiceEnabled && isCaptureServiceRunning);
         floatingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -251,6 +236,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
                 if (isChecked) {
 
+                    // Start Service
                     startCaptureService();
 
                     // Display info to user that service is available now
@@ -261,33 +247,51 @@ public class MainActivity extends BaseActivity implements MainMvpView {
                             .setNeutralButton(R.string.FloatingSwitchDialogBtn, null)
                             .show();
                 } else {
-                    stopService(new Intent(MainActivity.this, CaptureService.class));
+                    stopCaptureService();
                 }
             }
         });
+
+        // Start Service if not already running and active
+        if (captureServiceEnabled) {
+            startCaptureService();
+        }
+
     }
 
     /**
      * Start Capture service
      */
-    private void startCaptureService() {
-        checkDrawOverlayPermission();
-        startService(new Intent(MainActivity.this, CaptureService.class));
+    public void startCaptureService() {
+
+        final Context context = this;
+        final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
+
+        // Service may on boot if enable see CaptureIntentReceiver
+        if (!isCaptureServiceRunning) {
+
+            // Check and request if needed DrawOverlay Permission required by Capture service for
+            // displaying btn over UI for Android 6+.
+            if (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && !Settings.canDrawOverlays(context)
+            ) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+
+                startActivityForResult(intent, REQUEST_CODE);
+
+            } else {
+                startService(new Intent(context, CaptureService.class));
+            }
+        }
     }
 
     /**
-     * Check and request if needed DrawOverlay Permission required by Capture service for displaying
-     * btn over UI.
+     * Stop Capture service
      */
-    private void checkDrawOverlayPermission () {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, REQUEST_CODE);
-            }
-        }
+    public void stopCaptureService() {
+        stopService(new Intent(MainActivity.this, CaptureService.class));
     }
 
     /***** MVP View methods implementation *****/
@@ -300,7 +304,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
     @Override
     public void showError() {
-        DialogFactory.createGenericErrorDialog(this, getString(R.string.error_loading_ribots))
+        DialogFactory.createGenericErrorDialog(this, getString(R.string.error_loading_swibrs))
                 .show();
     }
 
@@ -308,7 +312,5 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     public void showSwibrsEmpty() {
         mSwibrsAdapter.setSwibrs(Collections.<Swibr>emptyList());
         mSwibrsAdapter.notifyDataSetChanged();
-        Toast.makeText(this, R.string.empty_ribots, Toast.LENGTH_LONG).show();
     }
-
 }

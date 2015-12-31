@@ -5,7 +5,7 @@
     <string name="dialog_action_cancel">Cancel</string>
     <string name="dialog_error_title">Sorry</string>
     <string name="empty_ribots">There aren\'t any Swibr</string>
-    <string name="error_loading_ribots">There was a problem loading the Swibr</string>
+    <string name="error_loading_swibrs">There was a problem loading the Swibr</string>
 
 
     <string name="havenondemand_apikey">b2791569-a598-49ca-8ff6-8bcbe66984de</string>

@@ -5,7 +5,7 @@ import com.swibr.app.injection.PerActivity;
 import com.swibr.app.injection.module.ActivityModule;
 import com.swibr.app.ui.capture.CaptureActivity;
 import com.swibr.app.ui.main.MainActivity;
-import com.swibr.app.ui.main.TutotialActivity;
+import com.swibr.app.ui.tutorial.TutorialActivity;
 
 /**
  * This component inject dependencies to all Activities across the application
@@ -18,5 +18,5 @@ public interface ActivityComponent {
 
     void inject(CaptureActivity captureActivity);
 
-    void inject(TutotialActivity tutotialActivity);
+    void inject(TutorialActivity tutorialActivity);
 }
