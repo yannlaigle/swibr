@@ -25,12 +25,13 @@ public interface OcrService {
     // - https://futurestud.io/blog/retrofit-2-how-to-upload-files-to-server
     // - https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9
 
-    String ENDPOINT = "https://api.idolondemand.com/";
+    String ENDPOINT = "https://api.havenondemand.com";
+    int TIMEOUT = 60;
 
     @Multipart
     @POST("1/api/sync/ocrdocument/v1")
     Call<ResponseBody> upload(
-            @Part("file\"; filename=\"image.png\" ") ProgressRequestBody file,
+            @Part("file\"; filename=\"image.jpg\" ") ProgressRequestBody file,
             @Query("mode") String mode,
             @Query("apikey") String apikey);
 
@@ -42,17 +43,14 @@ public interface OcrService {
             HttpLoggingInterceptor httpLogging = new HttpLoggingInterceptor();
             httpLogging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
 
-            LoggingInterceptor logging = new LoggingInterceptor();
-
             OkHttpClient httpClient = new OkHttpClient();
-            httpClient.setConnectTimeout(60, TimeUnit.SECONDS); // connect timeout
-            httpClient.setReadTimeout(60, TimeUnit.SECONDS);    // socket timeout
+            httpClient.setConnectTimeout(TIMEOUT, TimeUnit.SECONDS); // connect timeout
+            httpClient.setReadTimeout(TIMEOUT, TimeUnit.SECONDS);    // socket timeout
             httpClient.interceptors().add(httpLogging);
-            httpClient.interceptors().add(logging);
 
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(OcrService.ENDPOINT)
-                    //.addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())
                     .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                     .client(httpClient)
                     .build();
