@@ -50,7 +50,7 @@ public class ProgressRequestBody extends RequestBody {
         mListener = listener;
     }
 
-    public static ProgressRequestBody createImage( MediaType contentType, final File file,UploadCallbacks cb) {
+    public static ProgressRequestBody createImage( MediaType contentType, final File file, UploadCallbacks cb) {
         if (file == null) throw new NullPointerException("content == null");
         Charset charset = Util.UTF_8;
         if (contentType != null) {
@@ -60,7 +60,7 @@ public class ProgressRequestBody extends RequestBody {
                 contentType = MediaType.parse(contentType + "; charset=utf-8");
             }
         }
-        ProgressRequestBody progressRequestBody = new ProgressRequestBody(contentType,file, cb) ;
+        ProgressRequestBody progressRequestBody = new ProgressRequestBody(contentType, file, cb) ;
         return progressRequestBody;
     }
 

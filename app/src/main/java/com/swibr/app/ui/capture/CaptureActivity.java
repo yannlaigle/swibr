@@ -25,6 +25,7 @@ import android.view.Display;
 import android.widget.Toast;
 
 import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.ResponseBody;
 import com.swibr.app.R;
 import com.swibr.app.SwibrApplication;
 import com.swibr.app.data.DataManager;
@@ -38,6 +39,9 @@ import com.swibr.app.injection.module.ActivityModule;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.ProgressRequestBody;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,6 +53,9 @@ import java.util.UUID;
 import javax.inject.Inject;
 
 import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -284,7 +291,7 @@ public class CaptureActivity extends Activity {
 
                     @Override
                     public void onProgressUpdate(String path, int percent) {
-                        Log.e(TAG, path + "\t>>>"+percent);
+                        Log.i(TAG, path + "\t>>>" + percent);
                     }
 
                     @Override
@@ -301,7 +308,25 @@ public class CaptureActivity extends Activity {
 
         String mode = "document_photo";
         String apikey = "b2791569-a598-49ca-8ff6-8bcbe66984de";
-        Call<String> call = mOcrService.upload(requestBody, mode, apikey);
+        Call<ResponseBody> call = mOcrService.upload(requestBody, mode, apikey);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+                try {
+                    String jsonData = response.body().string();
+                    Log.v(TAG, jsonData.toString());
+
+                } catch (IOException e) {
+                    Log.v(TAG, "Exception caught : ", e);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e("uploadImageFile", "onFailure",  t);
+            }
+        });
     }
 
     private File getTestImage() throws IOException {
