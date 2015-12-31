@@ -34,6 +34,8 @@ import com.swibr.app.data.SyncService;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.capture.CaptureService;
+import com.swibr.app.ui.drawer.DrawerItemCustomAdapter;
+import com.swibr.app.ui.drawer.ObjectDrawerItem;
 import com.swibr.app.ui.tutorial.TutorialActivity;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.DialogFactory;
@@ -71,10 +73,6 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        if (getIntent().getBooleanExtra(EXTRA_TRIGGER_SYNC_FLAG, true)) {
-            startService(SyncService.getStartIntent(this));
-        }
-
         // Render view
         setupDrawer();
         setupCaptureService();
@@ -99,21 +97,42 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-        mDrawerTitles = getResources().getStringArray(R.array.menu_items);
-        
+        // Create menu items
+        ObjectDrawerItem[] drawerItem = new ObjectDrawerItem[3];
+        drawerItem[0] = new ObjectDrawerItem(R.mipmap.ic_launcher, getString(R.string.DrawerItemSettings));
+        drawerItem[1] = new ObjectDrawerItem(R.mipmap.ic_launcher, getString(R.string.DrawerItemTutorial));
+        drawerItem[2] = new ObjectDrawerItem(R.mipmap.ic_launcher, getString(R.string.DrawerItemFeedback));
+
         // Set the adapter for the list view
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-                R.layout.drawer_list_item, mDrawerTitles));
+        DrawerItemCustomAdapter adapter = new DrawerItemCustomAdapter(context, R.layout.drawer_list_item, drawerItem);
+        mDrawerList.setAdapter(adapter);
 
         // Set the list's click listener
-        class DrawerItemClickListener implements ListView.OnItemClickListener {
+        mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
-                Toast.makeText(context, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
-            }
-        }
-        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
+                switch (position) {
+                    case 0:
+                        startUsageStats();
+                        break;
+
+                    case 1:
+                        startTutorial();
+                        break;
+
+                    case 2:
+                        startFeedback();
+                        break;
+                }
+
+                mDrawerList.setItemChecked(position, true);
+                mDrawerList.setSelection(position);
+                mDrawerLayout.closeDrawer(mDrawerList);
+            }
+        });
+
+        // Set the button's click listener
         mDrawerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
@@ -133,7 +152,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
 
         final Switch floatingSwitch = (Switch) findViewById(R.id.floating_switch);
-        floatingSwitch.setChecked(captureServiceEnabled && isCaptureServiceRunning);
+        floatingSwitch.setChecked(captureServiceEnabled);
         floatingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -164,10 +183,62 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         // Start Service if not already running and active
         if (captureServiceEnabled) {
             startCaptureService();
+        } else {
+            stopCaptureService();
         }
     }
 
+    /**
+     * Start Capture service
+     */
+    public void startCaptureService() {
+
+        final Context context = this;
+        final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
+
+        // Service may on boot if enable see CaptureIntentReceiver
+        if (!isCaptureServiceRunning) {
+
+            // Check and request if needed DrawOverlay Permission required by Capture service for
+            // displaying btn over UI for Android 6+.
+            if (
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                            && !Settings.canDrawOverlays(context)
+                    ) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+
+                startActivityForResult(intent, START_CAPTURE_SERVICE_REQUEST_CODE);
+
+            } else {
+                startService(new Intent(context, CaptureService.class));
+            }
+        }
+    }
+
+    /**
+     * Stop Capture service
+     */
+    public void stopCaptureService() {
+
+        final Context context = this;
+        final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
+
+        if (isCaptureServiceRunning) {
+            stopService(new Intent(context, CaptureService.class));
+        }
+    }
+
+    /**
+     * Setup Swibr Data, UI and background service.
+     */
     private void setupSwibrs() {
+
+        // Start background sync
+        if (getIntent().getBooleanExtra(EXTRA_TRIGGER_SYNC_FLAG, true)) {
+            startService(SyncService.getStartIntent(this));
+        }
+
         mRecyclerView.setAdapter(mSwibrsAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mMainPresenter.attachView(this);
@@ -182,19 +253,43 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final boolean runTutorialOnStart = prefs.getBoolean("runTutorialOnStart", true);
 
-        //if (runTutorialOnStart) {
-        if (true) {
+        if (runTutorialOnStart) {
 
             // Disable runTutorialOnStart is enable to avoid loop
             SharedPreferences.Editor prefEdit = prefs.edit();
             prefEdit.putBoolean("runTutorialOnStart", false);
             prefEdit.commit();
 
-            Intent i = new Intent();
-            i.setClass(MainActivity.this, TutorialActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(i);
+            startTutorial();
         }
+    }
+
+    /**
+     * Start Tutorial Activity
+     */
+    public void startTutorial() {
+
+        Intent tutorialIndent = new Intent();
+        tutorialIndent.setClass(MainActivity.this, TutorialActivity.class);
+        tutorialIndent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(tutorialIndent);
+    }
+
+    /**
+     * Start Feedback Activity
+     */
+    public void startFeedback() {
+
+        Intent Email = new Intent(Intent.ACTION_SEND);
+        Email.setType("text/email");
+        Email.putExtra(Intent.EXTRA_EMAIL, new String[]{getString(R.string.FeedbackEmail)});
+        Email.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.FeedbackSubject));
+        Email.putExtra(Intent.EXTRA_TEXT, getString(R.string.FeedbackText));
+        startActivity(Intent.createChooser(Email, getString(R.string.FeedbackTitle)));
+
+        // Create the Intent
+        final Context context = this;
+        final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
     }
 
     /**
@@ -230,40 +325,17 @@ public class MainActivity extends BaseActivity implements MainMvpView {
                         prefEdit.putBoolean("requestedUsageStats", true);
                         prefEdit.commit();
 
-                        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-                        startActivity(intent);
+                        startUsageStats();
                     }
                 })
                 .show();
         }
     }
 
-    /**
-     * Start Capture service
-     */
-    public void startCaptureService() {
+    public void startUsageStats() {
 
-        final Context context = this;
-        final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
-
-        // Service may on boot if enable see CaptureIntentReceiver
-        if (!isCaptureServiceRunning) {
-
-            // Check and request if needed DrawOverlay Permission required by Capture service for
-            // displaying btn over UI for Android 6+.
-            if (
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                    && !Settings.canDrawOverlays(context)
-            ) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + getPackageName()));
-
-                startActivityForResult(intent, START_CAPTURE_SERVICE_REQUEST_CODE);
-
-            } else {
-                startService(new Intent(context, CaptureService.class));
-            }
-        }
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+        startActivity(intent);
     }
 
     /**
@@ -288,14 +360,6 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         }
     }
 
-    /**
-     * Stop Capture service
-     */
-    public void stopCaptureService() {
-        final Context context = this;
-        stopService(new Intent(context, CaptureService.class));
-    }
-
     /***** MVP View methods implementation *****/
 
     @Override
@@ -306,7 +370,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
     @Override
     public void showError() {
-        DialogFactory.createGenericErrorDialog(this, getString(R.string.error_loading_swibrs))
+        DialogFactory.createGenericErrorDialog(this, getString(R.string.error_loading))
                 .show();
     }
 

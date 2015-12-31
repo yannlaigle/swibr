@@ -1,15 +1,26 @@
 <resources>
+    <!-- Internal String -->
     <string name="app_name">Swibr</string>
     <string name="action_settings">Settings</string>
     <string name="dialog_action_ok">OK</string>
     <string name="dialog_action_cancel">Cancel</string>
     <string name="dialog_error_title">Sorry</string>
-    <string name="empty_ribots">There aren\'t any Swibr</string>
-    <string name="error_loading_swibrs">There was a problem loading the Swibr</string>
+    <string name="error_loading">There was a problem loading data.</string>
 
+    <!-- feedback settings -->
+    <string name="FeedbackEmail">team@mylstrom.com</string>
+    <string name="FeedbackSubject">Swibr Feedback</string>
+    <string name="FeedbackTitle">Send Feedback:</string>
+    <string name="FeedbackText">Dear ...,</string>
 
+    <!-- havenondemand settings -->
     <string name="havenondemand_apikey">b2791569-a598-49ca-8ff6-8bcbe66984de</string>
     <string name="havenondemand_ocr_mode">document_photo</string>
+
+    <!-- UI String -->
+    <string name="DrawerItemSettings">Settings</string>
+    <string name="DrawerItemTutorial">Tutorial</string>
+    <string name="DrawerItemFeedback">Feedback</string>
 
 
     <string name="AuthDialog">Authorization</string>
@@ -21,10 +32,11 @@
     <string name="FloatingSwitchDialogText">You can now save the articles you want.</string>
     <string name="FloatingSwitchDialogBtn">Ok</string>
 
-    <string name="CaptureAction">Swibr Capture!</string>
+    <string name="CaptureAction">Swibr Captured!</string>
 
     <string name="ServiceNofif">Swibr Service Running</string>
     <string name="ServiceNofifText">Tap to return to Swibr.</string>
+
     <string name="CaptureNofif" />
     <string name="CaptureNofifText" />
 </resources>
