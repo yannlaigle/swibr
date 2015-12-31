@@ -1,18 +1,13 @@
 package com.swibr.app.ui.main;
 
-import android.content.Intent;
 import android.os.Bundle;
 
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.swibr.app.R;
-import com.swibr.app.data.SyncService;
 import com.swibr.app.ui.base.BaseActivity;
 
 import butterknife.Bind;
