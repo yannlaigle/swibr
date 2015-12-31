@@ -41,7 +41,7 @@ import com.swibr.app.util.DialogFactory;
 public class MainActivity extends BaseActivity implements MainMvpView {
 
     private static final String TAG = CaptureService.class.getName();
-    private static final int REQUEST_CODE = 1000;
+    private static final int START_CAPTURE_SERVICE_REQUEST_CODE = 1000;
     private static final String EXTRA_TRIGGER_SYNC_FLAG = "com.swibr.app.ui.main.MainActivity.EXTRA_TRIGGER_SYNC_FLAG";
 
     @Inject MainPresenter mMainPresenter;
@@ -71,46 +71,18 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        mRecyclerView.setAdapter(mSwibrsAdapter);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mMainPresenter.attachView(this);
-        mMainPresenter.loadSwibrs();
-
         if (getIntent().getBooleanExtra(EXTRA_TRIGGER_SYNC_FLAG, true)) {
             startService(SyncService.getStartIntent(this));
         }
 
-        initTutorial();
-
+        // Render view
         setupDrawer();
+        setupCaptureService();
+        setupSwibrs();
 
+        // Init other steps
+        initTutorial();
         initUsageStats();
-        initCaptureService();
-
-        //addSwibr();
-    }
-
-    /**
-     * Handle onActivityResult
-     * @param requestCode
-     * @param resultCode
-     * @param data
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
-
-        // Handle DrawOverlay Permission result
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-            // TODO
-            // - dedicate REQUEST_CODE
-            // - create dedicated start func to void duplicate startService
-            if (requestCode == REQUEST_CODE) {
-                if (Settings.canDrawOverlays(this)) {
-                    startService(new Intent(MainActivity.this, CaptureService.class));
-                }
-            }
-        }
     }
 
     /**
@@ -121,6 +93,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         // TODO better design
         // - http://codetheory.in/android-navigation-drawer/
         // - http://blog.teamtreehouse.com/add-navigation-drawer-android
+        final Context context = this;
 
         mDrawerBtn = (ImageButton)findViewById(R.id.drawer_btn);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -136,7 +109,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         class DrawerItemClickListener implements ListView.OnItemClickListener {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
-                Toast.makeText(MainActivity.this, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
             }
         }
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
@@ -144,79 +117,15 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mDrawerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-            mDrawerLayout.openDrawer(Gravity.LEFT);
+                mDrawerLayout.openDrawer(Gravity.LEFT);
             }
         });
     }
 
     /**
-     * Start tutorial if first start or pref enable otherwise load swibrs.
-     */
-    protected void initTutorial() {
-
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        final boolean runTutorialOnStart = prefs.getBoolean("runTutorialOnStart", true);
-
-        //if (runTutorialOnStart) {
-        if (true) {
-
-            // Disable runTutorialOnStart is enable to avoid loop
-            SharedPreferences.Editor prefEdit = prefs.edit();
-            prefEdit.putBoolean("runTutorialOnStart", false);
-            prefEdit.commit();
-
-            Intent i = new Intent();
-            i.setClass(MainActivity.this, TutorialActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(i);
-        }
-    }
-
-    /**
-     * Request user usage stats
-     */
-    protected void initUsageStats() {
-
-        final Context context = this;
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        final boolean isUsageStatsRequested = prefs.getBoolean("requestedUsageStats", false);
-        final boolean isUsageStatsEnabled = AndroidComponentUtil.isUsageStatsEnabled(context);
-
-        if(!isUsageStatsEnabled && !isUsageStatsRequested) {
-
-            new AlertDialog.Builder(this)
-                .setTitle(R.string.AuthDialog)
-                .setMessage(R.string.AuthDialogText)
-                .setCancelable(true)
-                .setNegativeButton(R.string.AuthDialogCancelBtn, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        // Update requestedUsageStats value
-                        SharedPreferences.Editor prefEdit = prefs.edit();
-                        prefEdit.putBoolean("requestedUsageStats", true);
-                        prefEdit.commit();
-                    }
-                })
-                .setPositiveButton(R.string.AuthDialogSettings, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        // Update requestedUsageStats value
-                        SharedPreferences.Editor prefEdit = prefs.edit();
-                        prefEdit.putBoolean("requestedUsageStats", true);
-                        prefEdit.commit();
-
-                        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-                        startActivity(intent);
-                    }
-                })
-                .show();
-        }
-    }
-
-    /**
      * Start and setup Capture service and start service btn.
      */
-    protected void initCaptureService() {
+    private void setupCaptureService() {
 
         final Context context = this;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -256,7 +165,77 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         if (captureServiceEnabled) {
             startCaptureService();
         }
+    }
 
+    private void setupSwibrs() {
+        mRecyclerView.setAdapter(mSwibrsAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mMainPresenter.attachView(this);
+        mMainPresenter.loadSwibrs();
+    }
+
+    /**
+     * Start tutorial if first start or pref enable otherwise load swibrs.
+     */
+    private void initTutorial() {
+
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        final boolean runTutorialOnStart = prefs.getBoolean("runTutorialOnStart", true);
+
+        //if (runTutorialOnStart) {
+        if (true) {
+
+            // Disable runTutorialOnStart is enable to avoid loop
+            SharedPreferences.Editor prefEdit = prefs.edit();
+            prefEdit.putBoolean("runTutorialOnStart", false);
+            prefEdit.commit();
+
+            Intent i = new Intent();
+            i.setClass(MainActivity.this, TutorialActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        }
+    }
+
+    /**
+     * Request user usage stats
+     */
+    private void initUsageStats() {
+
+        final Context context = this;
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        final boolean isUsageStatsRequested = prefs.getBoolean("requestedUsageStats", false);
+        final boolean isUsageStatsEnabled = AndroidComponentUtil.isUsageStatsEnabled(context);
+
+        if(!isUsageStatsEnabled && !isUsageStatsRequested) {
+
+            new AlertDialog.Builder(context)
+                .setTitle(R.string.AuthDialog)
+                .setMessage(R.string.AuthDialogText)
+                .setCancelable(true)
+                .setNegativeButton(R.string.AuthDialogCancelBtn, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        // Update requestedUsageStats value
+                        SharedPreferences.Editor prefEdit = prefs.edit();
+                        prefEdit.putBoolean("requestedUsageStats", true);
+                        prefEdit.commit();
+                    }
+                })
+                .setPositiveButton(R.string.AuthDialogSettings, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        // Update requestedUsageStats value
+                        SharedPreferences.Editor prefEdit = prefs.edit();
+                        prefEdit.putBoolean("requestedUsageStats", true);
+                        prefEdit.commit();
+
+                        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+                        startActivity(intent);
+                    }
+                })
+                .show();
+        }
     }
 
     /**
@@ -279,9 +258,31 @@ public class MainActivity extends BaseActivity implements MainMvpView {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
 
-                startActivityForResult(intent, REQUEST_CODE);
+                startActivityForResult(intent, START_CAPTURE_SERVICE_REQUEST_CODE);
 
             } else {
+                startService(new Intent(context, CaptureService.class));
+            }
+        }
+    }
+
+    /**
+     * Handle onActivityResult
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
+
+        final Context context = this;
+
+        // Handle DrawOverlay Permission result for Android 6+
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                requestCode == START_CAPTURE_SERVICE_REQUEST_CODE
+        ) {
+            if (Settings.canDrawOverlays(context)) {
                 startService(new Intent(context, CaptureService.class));
             }
         }
@@ -291,7 +292,8 @@ public class MainActivity extends BaseActivity implements MainMvpView {
      * Stop Capture service
      */
     public void stopCaptureService() {
-        stopService(new Intent(MainActivity.this, CaptureService.class));
+        final Context context = this;
+        stopService(new Intent(context, CaptureService.class));
     }
 
     /***** MVP View methods implementation *****/
