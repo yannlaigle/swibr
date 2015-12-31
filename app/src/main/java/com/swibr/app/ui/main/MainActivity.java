@@ -147,7 +147,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mDrawerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                mDrawerLayout.openDrawer(Gravity.LEFT);
+            mDrawerLayout.openDrawer(Gravity.LEFT);
             }
         });
     }
@@ -161,6 +161,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         final boolean runTutorialOnStart = prefs.getBoolean("runTutorialOnStart", true);
 
         if (runTutorialOnStart) {
+        //if (true) {
 
             // Disable runTutorialOnStart is enable to avoid loop
             SharedPreferences.Editor prefEdit = prefs.edit();

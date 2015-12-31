@@ -5,8 +5,11 @@ import android.os.Bundle;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 import com.swibr.app.R;
 import com.swibr.app.data.SyncService;
@@ -21,6 +24,10 @@ import butterknife.ButterKnife;
 public class TutotialActivity extends BaseActivity {
 
     @Bind(R.id.exit_tuto) Button mExitTuto;
+    @Bind(R.id.view_fliper) ViewFlipper viewFlipper;
+
+    private float x1, x2;
+    static final int MIN_DISTANCE = 150;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,20 +36,84 @@ public class TutotialActivity extends BaseActivity {
         setContentView(R.layout.activity_tutorial);
         ButterKnife.bind(this);
 
-        // TODO use viewflipper
-        // - http://examples.javacodegeeks.com/android/core/widget/viewflipper/android-viewflipper-example/
-
         mExitTuto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                exitTutorial();
+                finish();
             }
         });
     }
 
-    private void exitTutorial() {
-        Intent i = new Intent();
-        i.setClass(TutotialActivity.this, MainActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(i);
+    private void showNext() {
+
+        // Next screen comes in from right.
+        viewFlipper.setInAnimation(this, R.anim.slide_in_from_right);
+        // Current screen goes out from left.
+        viewFlipper.setOutAnimation(this, R.anim.slide_out_to_left);
+
+        // Display next screen.
+        viewFlipper.showNext();
+    }
+
+    private void showPrevious() {
+        // Next screen comes in from left.
+        viewFlipper.setInAnimation(this, R.anim.slide_in_from_left);
+        // Current screen goes out from right.
+        viewFlipper.setOutAnimation(this, R.anim.slide_out_to_right);
+
+        // Display previous screen.
+        viewFlipper.showPrevious();
+    }
+
+    // Using the following method, we will handle all screen swaps.
+    public boolean onTouchEvent(MotionEvent event) {
+
+        switch(event.getAction())
+        {
+            case MotionEvent.ACTION_DOWN:
+                x1 = event.getX();
+                break;
+            case MotionEvent.ACTION_UP:
+                x2 = event.getX();
+                float deltaX = x2 - x1;
+
+                if (Math.abs(deltaX) > MIN_DISTANCE)
+                {
+                    // Left to Right swipe action
+                    if (x2 > x1)
+                    {
+                        // If there aren't any other children, just break.
+                        if (viewFlipper.getDisplayedChild() == 0)
+                            break;
+
+                        // Display previous screen.
+                        showPrevious();
+
+                    }
+
+                    // Right to left swipe action
+                    else
+                    {
+                        // If there aren't any other children, just break.
+                        if (viewFlipper.getDisplayedChild() == viewFlipper.getChildCount() - 1) {
+                            finish();
+                        } else {
+                            // Display next screen.
+                            showNext();
+                        }
+                    }
+
+                } else {
+
+                    // Display next if available
+                    if (viewFlipper.getDisplayedChild() < viewFlipper.getChildCount() - 1) {
+                        showNext();
+                    // Otherwise exist tutorial
+                    } else {
+                        finish();
+                    }
+                }
+                break;
+        }
+        return super.onTouchEvent(event);
     }
 }
