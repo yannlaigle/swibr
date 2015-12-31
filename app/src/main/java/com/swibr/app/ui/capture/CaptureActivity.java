@@ -1,6 +1,5 @@
 package com.swibr.app.ui.capture;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -27,15 +26,11 @@ import android.widget.Toast;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.ResponseBody;
 import com.swibr.app.R;
-import com.swibr.app.SwibrApplication;
 import com.swibr.app.data.DataManager;
 import com.swibr.app.data.model.Name;
 import com.swibr.app.data.model.Profile;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.data.remote.OcrService;
-import com.swibr.app.injection.component.ActivityComponent;
-import com.swibr.app.injection.component.DaggerActivityComponent;
-import com.swibr.app.injection.module.ActivityModule;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.ProgressRequestBody;
@@ -58,12 +53,12 @@ import rx.schedulers.Schedulers;
 
 /**
  * Created by hthetiot on 12/29/15.
+ * This Activity is used to Capture the screen of the user.
  */
 public class CaptureActivity extends BaseActivity {
 
     private static final String TAG = CaptureActivity.class.getName();
-
-    private static int REQUEST_CODE = 1001;
+    private static final int REQUEST_CODE = 1001;
 
     private MediaProjectionManager mProjectionManager;
     private MediaProjection mMediaProjection;
@@ -82,6 +77,8 @@ public class CaptureActivity extends BaseActivity {
 
         super.onCreate(savedInstanceState);
         getActivityComponent().inject(this);
+
+        // Set Transparent layout
         setContentView(R.layout.activity_capture);
 
         // Get the default public pictures directory
@@ -102,16 +99,20 @@ public class CaptureActivity extends BaseActivity {
 
         // Emulate capture on emulator
         if (AndroidComponentUtil.isRunningOnEmulator()) {
-
             startCaptureTest();
 
         // Run real capture on Device
         } else {
-
             startCapture();
         }
     }
 
+    /**
+     * Hanle Media Projection result.
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_CODE) {
@@ -141,6 +142,9 @@ public class CaptureActivity extends BaseActivity {
         }
     }
 
+    /**
+     * Handle ImageReader result
+     */
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
@@ -180,6 +184,9 @@ public class CaptureActivity extends BaseActivity {
         }
     }
 
+    /**
+     * Dummy Capture for Emulator and UnitTest.
+     */
     private void startCaptureTest() {
 
         Log.i(TAG, "startCaptureTest");
@@ -206,6 +213,9 @@ public class CaptureActivity extends BaseActivity {
         finish();
     }
 
+    /**
+     * Start MediaProjection Capture
+     */
     private void startCapture() {
 
         Log.i(TAG, "startCapture");
@@ -240,6 +250,9 @@ public class CaptureActivity extends BaseActivity {
         });
     }
 
+    /**
+     * Publish Capture as a Swibr push for Analyze
+     */
     private void publishCapture(File file) {
 
         String uniqueSuffix = "r" +  UUID.randomUUID().toString();
@@ -267,7 +280,12 @@ public class CaptureActivity extends BaseActivity {
         analyzeImageFile(newSwibr, file);
     }
 
-    private void analyzeImageFile(Swibr newSwibr, File file) {
+    /**
+     * Run Image Capture Analyze
+     * @param swibr
+     * @param file
+     */
+    private void analyzeImageFile(Swibr swibr, File file) {
 
         ProgressRequestBody requestBody = ProgressRequestBody.createImage(
                 MediaType.parse("multipart/form-data"),
@@ -315,6 +333,11 @@ public class CaptureActivity extends BaseActivity {
         });
     }
 
+    /**
+     * Generate a dummy capture using a template image and write some random text on top of it.
+     * @return
+     * @throws IOException
+     */
     private File getTestImage() throws IOException {
 
         Bitmap src = BitmapFactory.decodeResource(getResources(), R.drawable.test_capture); // the original file yourimage.jpg i added in resources
@@ -336,6 +359,11 @@ public class CaptureActivity extends BaseActivity {
         return saveImage(bitmap);
     }
 
+    /**
+     * Generate capture file name and prepare file.
+     * @return
+     * @throws IOException
+     */
     private File getImageFile() throws IOException {
 
         String filename = "Swibr_" + System.currentTimeMillis() + ".jpg";
@@ -351,6 +379,12 @@ public class CaptureActivity extends BaseActivity {
         return file;
     }
 
+    /**
+     * Save capture on user device.
+     * @param bitmap
+     * @return
+     * @throws IOException
+     */
     private File saveImage(Bitmap bitmap) throws IOException {
 
         File dest = null;
@@ -379,5 +413,4 @@ public class CaptureActivity extends BaseActivity {
 
         return dest;
     }
-
 }

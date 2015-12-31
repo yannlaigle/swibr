@@ -19,6 +19,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.swibr.app.R;
+import com.swibr.app.data.model.Swibr;
 import com.swibr.app.ui.main.MainActivity;
 
 import java.io.File;
@@ -59,15 +60,22 @@ public class CaptureService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        // TODO
+        // - set run false
+
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         startNotification();
         renderFloatingBtn();
-
-        // TODO set run true
     }
 
+    /**
+     * Render Floating Button for Capture
+     */
     protected void renderFloatingBtn() {
+
+        // TODO
+        // - add screen rotation support ?
 
         floatingBtn = new ImageView(this);
         floatingBtn.setImageResource(R.drawable.btn_standby);
@@ -93,15 +101,14 @@ public class CaptureService extends Service {
 
         floatingBtn.setOnTouchListener(new View.OnTouchListener() {
 
+            private int MIN_DISTANCE = widthPoint * 30 / 100;
+
             private WindowManager.LayoutParams paramsF = params;
             private int initialX;
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
             private float deltaX;
-
-            private int MIN_DISTANCE = widthPoint * 30 / 100;
-
             private float x1;
             private float x2;
 
@@ -145,6 +152,9 @@ public class CaptureService extends Service {
         mWindowManager.addView(floatingBtn, params);
     }
 
+    /**
+     * Start Capture Activity
+     */
     private void requestCapture() {
         Intent i = new Intent();
         i.setClass(CaptureService.this, CaptureActivity.class);
@@ -152,7 +162,13 @@ public class CaptureService extends Service {
         startActivity(i);
     }
 
+    /**
+     * Start Service Notification
+     */
     private void startNotification() {
+
+        // TODO
+        // - remove notification when service stop
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
@@ -171,7 +187,11 @@ public class CaptureService extends Service {
         startForeground(2, swibrNotification);
     }
 
-    private void captureNotification(File image) {
+    /**
+     * Create a capture notification
+     * @param image
+     */
+    private void captureNotification(Swibr swibr, File image) {
 
         // TODO
         // - share
@@ -199,10 +219,12 @@ public class CaptureService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
+        // TODO
+        // - set run false
+        // - stop service notification
+
         if (floatingBtn != null) {
             mWindowManager.removeView(floatingBtn);
         }
-
-        // TODO set run false
     }
 }

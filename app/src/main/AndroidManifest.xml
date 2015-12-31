@@ -122,7 +122,7 @@
 
         <service android:name=".ui.capture.CaptureService" android:exported="true" />
 
-        <receiver android:name=".ui.capture.BootCompletedIntentReceiver">
+        <receiver android:name=".ui.capture.CaptureIntentReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

@@ -43,9 +43,8 @@ import com.swibr.app.util.DialogFactory;
 
 public class MainActivity extends BaseActivity implements MainMvpView {
 
-
-    private static int REQUEST_CODE = 1000;
     private static final String TAG = CaptureService.class.getName();
+    private static final int REQUEST_CODE = 1000;
     private static final String EXTRA_TRIGGER_SYNC_FLAG = "com.swibr.app.ui.main.MainActivity.EXTRA_TRIGGER_SYNC_FLAG";
 
     @Inject MainPresenter mMainPresenter;
@@ -95,11 +94,15 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         //addSwibr();
     }
 
+    /**
+     * Setup navigation drawer
+     */
     private void setupDrawer() {
 
         // TODO better design
         // - http://codetheory.in/android-navigation-drawer/
         // - http://blog.teamtreehouse.com/add-navigation-drawer-android
+
 
         mDrawerBtn = (ImageButton)findViewById(R.id.drawer_btn);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -110,25 +113,28 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         // Set the adapter for the list view
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
                 R.layout.drawer_list_item, mDrawerTitles));
+
         // Set the list's click listener
-        // mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        class DrawerItemClickListener implements ListView.OnItemClickListener {
+            @Override
+            public void onItemClick(AdapterView parent, View view, int position, long id) {
+
+                Toast.makeText(MainActivity.this, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
+            }
+        }
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         mDrawerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-            mDrawerLayout.openDrawer(Gravity.LEFT);
+                mDrawerLayout.openDrawer(Gravity.LEFT);
             }
         });
     }
 
-    private class DrawerItemClickListener implements ListView.OnItemClickListener {
-        @Override
-        public void onItemClick(AdapterView parent, View view, int position, long id) {
-
-            Toast.makeText(MainActivity.this, String.format("Menu Item %d", position), Toast.LENGTH_LONG).show();
-        }
-    }
-
+    /**
+     * Start tutorial if first start or pref enable.
+     */
     protected void initTutorial() {
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -148,7 +154,13 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         }
     }
 
+    /**
+     * Request user usage stats
+     */
     protected void initUsageStats() {
+
+        // TODO
+        // - Once only ?
 
         final Context context = this;
         boolean isUsageStatsEnabled = AndroidComponentUtil.isUsageStatsEnabled(context);
@@ -169,9 +181,12 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         }
     }
 
+    /**
+     * Start and setup Capture service.
+     */
     protected void initCaptureService() {
 
-        // Service may on boot if enable see BootCompletedIntentReceiver
+        // Service may on boot if enable see CaptureIntentReceiver
 
         final Context context = this;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -209,7 +224,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
                             .setCancelable(false)
                             .setNeutralButton(R.string.FloatingSwitchDialogBtn, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                startService(new Intent(MainActivity.this, CaptureService.class));
+                                    startService(new Intent(MainActivity.this, CaptureService.class));
                                 }
                             })
                             .show();
@@ -220,6 +235,10 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         });
     }
 
+    /**
+     * Check and request if needed DrawOverlay Permission required by Capture service for displaying
+     * btn over UI.
+     */
     public void checkDrawOverlayPermission () {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -231,10 +250,21 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         }
     }
 
+    /**
+     * Handle onActivityResult
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
 
+        // Handle DrawOverlay Permission result
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            // TODO
+            // - dedicate REQUEST_CODE
+            // - create dedicated start func to void duplicate startService
             if (requestCode == REQUEST_CODE) {
                 if (Settings.canDrawOverlays(this)) {
                     startService(new Intent(MainActivity.this, CaptureService.class));
