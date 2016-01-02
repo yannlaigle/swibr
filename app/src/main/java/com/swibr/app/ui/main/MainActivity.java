@@ -99,9 +99,9 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
         // Create menu items
         ObjectDrawerItem[] drawerItem = new ObjectDrawerItem[3];
-        drawerItem[0] = new ObjectDrawerItem(R.mipmap.ic_launcher, getString(R.string.DrawerItemSettings));
-        drawerItem[1] = new ObjectDrawerItem(R.mipmap.ic_launcher, getString(R.string.DrawerItemTutorial));
-        drawerItem[2] = new ObjectDrawerItem(R.mipmap.ic_launcher, getString(R.string.DrawerItemFeedback));
+        drawerItem[0] = new ObjectDrawerItem(R.drawable.ic_settings_black_24dp, getString(R.string.DrawerItemSettings));
+        drawerItem[1] = new ObjectDrawerItem(R.drawable.ic_help_black_24dp, getString(R.string.DrawerItemTutorial));
+        drawerItem[2] = new ObjectDrawerItem(R.drawable.ic_feedback_black_24dp, getString(R.string.DrawerItemFeedback));
 
         // Set the adapter for the list view
         DrawerItemCustomAdapter adapter = new DrawerItemCustomAdapter(context, R.layout.drawer_list_item, drawerItem);

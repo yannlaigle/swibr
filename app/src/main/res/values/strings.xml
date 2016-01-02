@@ -22,7 +22,6 @@
     <string name="DrawerItemTutorial">Tutorial</string>
     <string name="DrawerItemFeedback">Feedback</string>
 
-
     <string name="AuthDialog">Authorization</string>
     <string name="AuthDialogText">To help Swibr to remember the articles that interest you, you can allow the application to access Usages Stats of your device. However, nothing forces you to do it.</string>
     <string name="AuthDialogCancelBtn">Cancel</string>
@@ -35,8 +34,11 @@
     <string name="CaptureAction">Swibr Captured!</string>
 
     <string name="ServiceNofif">Swibr Service Running</string>
-    <string name="ServiceNofifText">Tap to return to Swibr.</string>
+    <string name="ServiceNofifText">Tap to return to Swibr</string>
 
     <string name="CaptureNofif" />
     <string name="CaptureNofifText" />
+
+    <string name="TutoSlogan">Swipe to remember</string>
+    <string name="TutoLaunchBtn">Launch</string>
 </resources>
