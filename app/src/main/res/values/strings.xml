@@ -31,7 +31,7 @@
     <string name="FloatingSwitchDialogText">You can now save the articles you want.</string>
     <string name="FloatingSwitchDialogBtn">Ok</string>
 
-    <string name="CaptureAction">Swibr Captured!</string>
+    <string name="CaptureAction">Swibe Captured!</string>
 
     <string name="ServiceNofif">Swibr Service Running</string>
     <string name="ServiceNofifText">Tap to return to Swibr</string>

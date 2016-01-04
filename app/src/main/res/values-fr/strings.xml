@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Internal String -->
+    <string name="app_name">Swibr</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="dialog_action_ok">OK</string>
+    <string name="dialog_action_cancel">Annuler</string>
+    <string name="dialog_error_title">Désolé</string>
+    <string name="error_loading">Un problème est survenu lors du chargement des données.</string>
+
+    <!-- feedback settings -->
+    <string name="FeedbackEmail">team@mylstrom.com</string>
+    <string name="FeedbackSubject">Retour Swibr</string>
+    <string name="FeedbackTitle">Envoyer un retour :</string>
+    <string name="FeedbackText">Cher ...,</string>
+
+    <!-- havenondemand settings -->
+    <string name="havenondemand_apikey">b2791569-a598-49ca-8ff6-8bcbe66984de</string>
+    <string name="havenondemand_ocr_mode">document_photo</string>
+
+    <!-- UI String -->
+    <string name="DrawerItemSettings">Paramètres</string>
+    <string name="DrawerItemTutorial">Tutoriel</string>
+    <string name="DrawerItemFeedback">Contact</string>
+
+    <string name="AuthDialog">Autorisation</string>
+    <string name="AuthDialogText">Pour aider Swibr à mémoriser les articles qui vous intéressent, vous pouvez autoriser l\'application à accéder aux statistiques d\'utilisation de votre appareil. Cependant, rien ne vous oblige à le faire.</string>
+    <string name="AuthDialogCancelBtn">Annuler</string>
+    <string name="AuthDialogSettings">Paramètres</string>
+
+    <string name="FloatingSwitchDialog">Raccourci Swibr activé</string>
+    <string name="FloatingSwitchDialogText">Vous pouvez maintenant sauvegarder les articles que vous voulez.</string>
+    <string name="FloatingSwitchDialogBtn">Ok</string>
+
+    <string name="CaptureAction">Swibe enregistré !</string>
+
+    <string name="ServiceNofif">Service Swibr en cours</string>
+    <string name="ServiceNofifText">Tapez pour revenir sur Swibr</string>
+
+    <string name="CaptureNofif" />
+    <string name="CaptureNofifText" />
+
+    <string name="TutoText01">Où que vous soyez sur internet ou sur une application...</string>
+    <string name="TutoText02">si un article vous intéresse...</string>
+    <string name="TutoText03">un simple geste suffit pour le mémoriser</string>
+    <string name="TutoText04">et retrouvez le sur votre applicaiton</string>
+    <string name="TutoSlogan">Swipe to remember</string>
+    <string name="TutoLaunchBtn">Lancer</string>
+</resources>
