@@ -33,6 +33,9 @@
     <string name="FloatingSwitchDialogBtn">Ok</string>
 
     <string name="CaptureAction">Swibe enregistré !</string>
+    <string name="CaptureFailedAccessDirectory">Echec d\'accès au répertoire d\'images.</string>
+    <string name="CaptureSucceeded">Swibe enregistré !</string>
+    <string name="CaptureFailed">Echec d\'enregistrement</string>
 
     <string name="ServiceNofif">Service Swibr en cours</string>
     <string name="ServiceNofifText">Tapez pour revenir sur Swibr</string>

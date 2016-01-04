@@ -38,5 +38,5 @@
         android:paddingRight="10dp"
         android:text="Folder name here."
         android:textAppearance="?android:attr/textAppearanceListItemSmall"
-        android:textColor="@color/drawer_list_selector" />
+        android:textColor="@color/accent" />
 </RelativeLayout>

@@ -90,7 +90,7 @@ public class CaptureActivity extends BaseActivity {
         if (!storeDirectory.exists()) {
             boolean success = storeDirectory.mkdirs();
             if (!success) {
-                Toast.makeText(this, "Failed to access pictures directory.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.CaptureFailedAccessDirectory, Toast.LENGTH_LONG).show();
                 Log.e(TAG, "Failed to create pictures directory.");
                 finish();
                 return;
@@ -172,14 +172,14 @@ public class CaptureActivity extends BaseActivity {
                 publishCapture(newImage);
 
                 Log.i(TAG, "Swibr image completed: " + newImage.getAbsolutePath());
-                Toast.makeText(context, "Swibr capture succeeded!", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, R.string.CaptureSucceeded, Toast.LENGTH_LONG).show();
 
                 // Stop Capture
                 mImageReader.close();
 
             } catch (Exception e) {
                 Log.e(TAG, "Swibr image capture fail cause", e);
-                Toast.makeText(context, "Swibr capture failed!", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, R.string.CaptureFailed, Toast.LENGTH_LONG).show();
             }
         }
     }

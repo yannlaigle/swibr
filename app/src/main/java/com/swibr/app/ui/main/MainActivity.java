@@ -10,12 +10,13 @@ import android.os.*;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -98,10 +99,11 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
         // Create menu items
-        ObjectDrawerItem[] drawerItem = new ObjectDrawerItem[3];
-        drawerItem[0] = new ObjectDrawerItem(R.drawable.ic_settings_black_24dp, getString(R.string.DrawerItemSettings));
-        drawerItem[1] = new ObjectDrawerItem(R.drawable.ic_help_black_24dp, getString(R.string.DrawerItemTutorial));
-        drawerItem[2] = new ObjectDrawerItem(R.drawable.ic_feedback_black_24dp, getString(R.string.DrawerItemFeedback));
+        ObjectDrawerItem[] drawerItem = new ObjectDrawerItem[4];
+        drawerItem[0] = new ObjectDrawerItem(R.drawable.ic_folder_special_black_24dp, getString(R.string.DrawerItemSettings));
+        drawerItem[1] = new ObjectDrawerItem(R.drawable.ic_settings_black_24dp, getString(R.string.DrawerItemSettings));
+        drawerItem[2] = new ObjectDrawerItem(R.drawable.ic_help_black_24dp, getString(R.string.DrawerItemTutorial));
+        drawerItem[3] = new ObjectDrawerItem(R.drawable.ic_feedback_black_24dp, getString(R.string.DrawerItemFeedback));
 
         // Set the adapter for the list view
         DrawerItemCustomAdapter adapter = new DrawerItemCustomAdapter(context, R.layout.drawer_list_item, drawerItem);
@@ -114,14 +116,18 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
                 switch (position) {
                     case 0:
-                        startUsageStats();
+                        startCategoryPage();
                         break;
 
                     case 1:
-                        startTutorial();
+                        startUsageStats();
                         break;
 
                     case 2:
+                        startTutorial();
+                        break;
+
+                    case 3:
                         startFeedback();
                         break;
                 }
@@ -243,6 +249,30 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mMainPresenter.attachView(this);
         mMainPresenter.loadSwibrs();
+
+        /**
+         * Trying to implement swipe on RecycleView to remove or store items
+         * first : - http://stackoverflow.com/questions/27293960/swipe-to-dismiss-for-recyclerview/30601554#30601554
+         *
+         * TODO separate LEFT and RIGHT events and manage change in database
+         */
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                int position = viewHolder.getAdapterPosition();
+                mRecyclerView.getAdapter().notifyItemRemoved(position);
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
     }
 
     /**
@@ -273,6 +303,15 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         tutorialIndent.setClass(MainActivity.this, TutorialActivity.class);
         tutorialIndent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(tutorialIndent);
+    }
+
+    /**
+     * Start Category Page
+     */
+    public void startCategoryPage() {
+        // TODO expand categories above swibes list
+        // - display like flipboard category : https://play.google.com/store/apps/details?id=flipboard.app&hl=fr
+        // - onclick on Category, sort and refresh swibes
     }
 
     /**

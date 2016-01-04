@@ -32,6 +32,9 @@
     <string name="FloatingSwitchDialogBtn">Ok</string>
 
     <string name="CaptureAction">Swibe Captured!</string>
+    <string name="CaptureFailedAccessDirectory">Failed to access pictures directory.</string>
+    <string name="CaptureSucceeded">Swibr capture succeeded!</string>
+    <string name="CaptureFailed">Swibr capture failed!</string>
 
     <string name="ServiceNofif">Swibr Service Running</string>
     <string name="ServiceNofifText">Tap to return to Swibr</string>
@@ -45,4 +48,5 @@
     <string name="TutoText04">and find it on your application</string>
     <string name="TutoSlogan">Swipe to remember</string>
     <string name="TutoLaunchBtn">Launch</string>
+
 </resources>

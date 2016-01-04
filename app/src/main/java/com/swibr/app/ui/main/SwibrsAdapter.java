@@ -1,6 +1,7 @@
 package com.swibr.app.ui.main;
 
 import android.graphics.Color;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,7 +39,7 @@ public class SwibrsAdapter extends RecyclerView.Adapter<SwibrsAdapter.SwibrViewH
     }
 
     @Override
-    public void onBindViewHolder(SwibrViewHolder holder, int position) {
+    public void onBindViewHolder(final SwibrViewHolder holder, int position) {
         Swibr swibr = mSwibrs.get(position);
         holder.hexColorView.setBackgroundColor(Color.parseColor(swibr.profile.hexColor));
         holder.nameTextView.setText(String.format("%s %s",
@@ -56,6 +57,7 @@ public class SwibrsAdapter extends RecyclerView.Adapter<SwibrsAdapter.SwibrViewH
         @Bind(R.id.view_hex_color) View hexColorView;
         @Bind(R.id.text_name) TextView nameTextView;
         @Bind(R.id.text_email) TextView emailTextView;
+        @Bind(R.id.card_view) CardView cardView;
 
         public SwibrViewHolder(View itemView) {
             super(itemView);
