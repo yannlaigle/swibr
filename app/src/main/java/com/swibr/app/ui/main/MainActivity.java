@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.*;
 import android.preference.PreferenceManager;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -100,7 +103,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
         // Create menu items
         ObjectDrawerItem[] drawerItem = new ObjectDrawerItem[4];
-        drawerItem[0] = new ObjectDrawerItem(R.drawable.ic_folder_special_black_24dp, getString(R.string.DrawerItemSettings));
+        drawerItem[0] = new ObjectDrawerItem(R.drawable.ic_folder_special_black_24dp, getString(R.string.DrawerItemCategory));
         drawerItem[1] = new ObjectDrawerItem(R.drawable.ic_settings_black_24dp, getString(R.string.DrawerItemSettings));
         drawerItem[2] = new ObjectDrawerItem(R.drawable.ic_help_black_24dp, getString(R.string.DrawerItemTutorial));
         drawerItem[3] = new ObjectDrawerItem(R.drawable.ic_feedback_black_24dp, getString(R.string.DrawerItemFeedback));
@@ -251,10 +254,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         mMainPresenter.loadSwibrs();
 
         /**
-         * Trying to implement swipe on RecycleView to remove or store items
-         * first : - http://stackoverflow.com/questions/27293960/swipe-to-dismiss-for-recyclerview/30601554#30601554
-         *
-         * TODO separate LEFT and RIGHT events and manage change in database
+         * Implement swipe on RecycleView to remove or store items
          */
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
@@ -266,7 +266,35 @@ public class MainActivity extends BaseActivity implements MainMvpView {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 int position = viewHolder.getAdapterPosition();
+                if (swipeDir == ItemTouchHelper.RIGHT) {
+                    // TODO Store Swibe
+                }
+                if (swipeDir == ItemTouchHelper.LEFT) {
+                    // TODO Remove Swibe
+                }
                 mRecyclerView.getAdapter().notifyItemRemoved(position);
+            }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    View itemView = viewHolder.itemView;
+
+                    Paint p = new Paint();
+                    if (dX > 0) {
+                        /* Store animation */
+                        p.setARGB(255, 46, 204, 113);
+                        c.drawRect((float) itemView.getLeft(), (float) itemView.getTop(), dX,
+                                (float) itemView.getBottom(), p);
+                    } else {
+                        /* Remove animation */
+                        p.setARGB(255, 231, 76, 60);
+                        c.drawRect((float) itemView.getRight() + dX, (float) itemView.getTop(),
+                                (float) itemView.getRight(), (float) itemView.getBottom(), p);
+                    }
+
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                }
             }
         };
 

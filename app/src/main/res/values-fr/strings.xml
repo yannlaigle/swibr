@@ -19,6 +19,7 @@
     <string name="havenondemand_ocr_mode">document_photo</string>
 
     <!-- UI String -->
+    <string name="DrawerItemCategory">Catégories</string>
     <string name="DrawerItemSettings">Paramètres</string>
     <string name="DrawerItemTutorial">Tutoriel</string>
     <string name="DrawerItemFeedback">Contact</string>
