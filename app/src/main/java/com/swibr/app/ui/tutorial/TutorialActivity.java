@@ -18,7 +18,6 @@ import butterknife.ButterKnife;
  */
 public class TutorialActivity extends BaseActivity {
 
-    @Bind(R.id.exit_tuto) Button mExitTuto;
     @Bind(R.id.view_fliper) ViewFlipper viewFlipper;
 
     private float x1, x2;
@@ -31,11 +30,6 @@ public class TutorialActivity extends BaseActivity {
         setContentView(R.layout.activity_tutorial);
         ButterKnife.bind(this);
 
-        mExitTuto.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                finish();
-            }
-        });
     }
 
     private void showNext() {

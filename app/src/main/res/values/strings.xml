@@ -39,6 +39,10 @@
     <string name="CaptureNofif" />
     <string name="CaptureNofifText" />
 
+    <string name="TutoText01">On the Internet or inside an app...</string>
+    <string name="TutoText02">if an article interests you...</string>
+    <string name="TutoText03">a simple gesture is enough to store it</string>
+    <string name="TutoText04">and find it on your application</string>
     <string name="TutoSlogan">Swipe to remember</string>
     <string name="TutoLaunchBtn">Launch</string>
 </resources>
