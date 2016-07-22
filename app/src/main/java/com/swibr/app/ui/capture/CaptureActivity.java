@@ -2,6 +2,7 @@ package com.swibr.app.ui.capture;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,32 +15,49 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.ResponseBody;
 import com.swibr.app.R;
 import com.swibr.app.data.DataManager;
+import com.swibr.app.data.local.PreferencesHelper;
+import com.swibr.app.data.model.Article;
 import com.swibr.app.data.model.Name;
 import com.swibr.app.data.model.Profile;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.ProgressRequestBody;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONStringer;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -59,18 +77,25 @@ public class CaptureActivity extends BaseActivity {
 
     private static final String TAG = CaptureActivity.class.getName();
     private static final int REQUEST_CODE = 1001;
+    private static final String WRITE_PERMISSION = "android.permission.WRITE_EXTERNAL_STORAGE";
+    private static final String READ_PERMISSION = "android.permission.READ_EXTERNAL_STORAGE";
 
     private MediaProjectionManager mProjectionManager;
     private MediaProjection mMediaProjection;
     private Handler mHandler;
 
+    private PreferencesHelper mPrefHelper;
     private File mPicturesDirectory;
     private ImageReader mImageReader;
     private int mWidth;
     private int mHeight;
 
-    @Inject DataManager mDataManager;
-    @Inject OcrService mOcrService;
+    @Inject
+    DataManager mDataManager;
+    @Inject
+    OcrService mOcrService;
+    @Inject
+    SwibrsService mSwibrService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,12 +106,15 @@ public class CaptureActivity extends BaseActivity {
         // Set Transparent layout
         setContentView(R.layout.activity_capture);
 
+        //Instanciate the PrefHelper
+        mPrefHelper = new PreferencesHelper(this);
+
         // Get the default public pictures directory
         mPicturesDirectory = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
 
         // Create folder if missing
-        File storeDirectory = new File(mPicturesDirectory.getAbsolutePath().toString());
+        File storeDirectory = new File(mPicturesDirectory.getAbsolutePath());
         if (!storeDirectory.exists()) {
             boolean success = storeDirectory.mkdirs();
             if (!success) {
@@ -101,14 +129,15 @@ public class CaptureActivity extends BaseActivity {
         if (AndroidComponentUtil.isRunningOnEmulator()) {
             startCaptureTest();
 
-        // Run real capture on Device
+            // Run real capture on Device
         } else {
             startCapture();
         }
     }
 
     /**
-     * Hanle Media Projection result.
+     * * Hanle Media Projection result.
+     *
      * @param requestCode
      * @param resultCode
      * @param data
@@ -169,7 +198,7 @@ public class CaptureActivity extends BaseActivity {
                 File newImage = saveImage(bitmap);
 
                 // Save the image as capture
-                publishCapture(newImage);
+                analyzeImageFile(newImage);
 
                 Log.i(TAG, "Swibr image completed: " + newImage.getAbsolutePath());
                 Toast.makeText(context, R.string.CaptureSucceeded, Toast.LENGTH_LONG).show();
@@ -198,8 +227,8 @@ public class CaptureActivity extends BaseActivity {
             // Save the bitmap as image
             File newImage = getTestImage();
 
-            // Save the image as capture
-            publishCapture(newImage);
+            // Analyze File
+            analyzeImageFile(newImage);
 
             Log.i(TAG, "[TEST] Swibr image completed: " + newImage.getAbsolutePath());
             Toast.makeText(context, "[TEST] Swibr capture succeeded!", Toast.LENGTH_LONG).show();
@@ -218,8 +247,25 @@ public class CaptureActivity extends BaseActivity {
      */
     private void startCapture() {
 
-        Log.i(TAG, "startCapture");
+        //For versions > Android 6.0 Marshmallow
+        if (!hasPermission(WRITE_PERMISSION)) {
+            if (shoudAskPermission(WRITE_PERMISSION)) {
+                Log.i(TAG, "Asking for write permissions");
+                String[] perms = {WRITE_PERMISSION, READ_PERMISSION};
+                int permsRequestCode = 200;
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(perms, permsRequestCode);
+                    return;
+                }
+            } else {
+                Log.i(TAG, "Unauthorized to start capture");
+                Toast.makeText(this.getApplicationContext(), "Could not start capture", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        Log.i(TAG, "startCapture");
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
 
@@ -227,7 +273,7 @@ public class CaptureActivity extends BaseActivity {
             @Override
             public void run() {
                 Looper.prepare();
-                Log.i(TAG, "stopCapture: started");
+                Log.i(TAG, "Starting capture");
                 mHandler = new Handler();
                 Looper.loop();
             }
@@ -250,42 +296,13 @@ public class CaptureActivity extends BaseActivity {
         });
     }
 
-    /**
-     * Publish Capture as a Swibr push for Analyze
-     */
-    private void publishCapture(File file) {
-
-        String uniqueSuffix = "r" +  UUID.randomUUID().toString();
-
-        Name name = new Name();
-        name.first = "Name-" + uniqueSuffix;
-        name.last = "Surname-" + uniqueSuffix;
-
-        Profile profile = new Profile();
-        profile.email = "email" + uniqueSuffix + "@example.com";
-        profile.name = name;
-        profile.dateOfBirth = new Date();
-        profile.hexColor = "#0066FF";
-        profile.avatar = "http://api.ribot.io/images/" + uniqueSuffix;
-        profile.bio = UUID.randomUUID().toString();
-
-        Swibr newSwibr = new Swibr(profile);
-
-        mDataManager.addSwibr(newSwibr)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe();
-
-        // Analyze File
-        analyzeImageFile(newSwibr, file);
-    }
 
     /**
      * Run Image Capture Analyze
-     * @param swibr
+     *
      * @param file
      */
-    private void analyzeImageFile(Swibr swibr, File file) {
+    private void analyzeImageFile(File file) {
 
         ProgressRequestBody requestBody = ProgressRequestBody.createImage(
                 MediaType.parse("multipart/form-data"),
@@ -316,25 +333,56 @@ public class CaptureActivity extends BaseActivity {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+                Call<ResponseBody> engineCall = null;
 
                 try {
-                    String jsonData = response.body().string();
-                    Log.v(TAG, jsonData.toString());
+                    //Check response contenttype is Json
+                    Gson json = new Gson();
+                    Log.d(TAG, "Body response : " + response.body().string());
+                    Article[] listArt = json.fromJson(response.body().string(), Article[].class);
+
+                    Log.d(TAG, "JSON decoded : " + listArt.length);
+                    engineCall = mSwibrService.storeSwibe(json.toString());
 
                 } catch (IOException e) {
-                    Log.v(TAG, "Exception caught : ", e);
+                    Log.e(TAG, "IOException caught : ", e);
                 }
+                Log.d(TAG, "Going for engine call");
+
+                if (engineCall == null) {
+                    Log.d(TAG, "Canceling call");
+                    return;
+                }
+
+                engineCall.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+                        try {
+
+                            Log.i(TAG, "Response : " + response.body().string());
+
+                        } catch (IOException e) {
+                            Log.v(TAG, "IOException on Engine call caught : ", e);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.e("Engine call", "onFailure", t);
+                    }
+                });
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Log.e("uploadImageFile", "onFailure",  t);
+                Log.e("uploadImageFile", "onFailure", t);
             }
         });
     }
 
     /**
      * Generate a dummy capture using a template image and write some random text on top of it.
+     *
      * @return
      * @throws IOException
      */
@@ -353,14 +401,15 @@ public class CaptureActivity extends BaseActivity {
         cs.drawBitmap(src, 0f, 0f, null);
         float height = tPaint.measureText("yY");
         float width = tPaint.measureText(yourText);
-        float x_coord = (src.getWidth() - width)/2;
-        cs.drawText(yourText, x_coord, height+15f, tPaint); // 15f is to put space between top edge and the text, if you want to change it, you can
+        float x_coord = (src.getWidth() - width) / 2;
+        cs.drawText(yourText, x_coord, height + 15f, tPaint); // 15f is to put space between top edge and the text, if you want to change it, you can
 
         return saveImage(bitmap);
     }
 
     /**
      * Generate capture file name and prepare file.
+     *
      * @return
      * @throws IOException
      */
@@ -371,7 +420,7 @@ public class CaptureActivity extends BaseActivity {
 
         if (!file.exists()) {
             boolean success = file.createNewFile();
-            if(!success) {
+            if (!success) {
                 Log.e(TAG, "Failed to create file: " + filename);
             }
         }
@@ -381,6 +430,7 @@ public class CaptureActivity extends BaseActivity {
 
     /**
      * Save capture on user device.
+     *
      * @param bitmap
      * @return
      * @throws IOException
@@ -413,4 +463,45 @@ public class CaptureActivity extends BaseActivity {
 
         return dest;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.i(TAG, "Request Code : " + requestCode);
+        switch (requestCode) {
+            case 200:
+                for (int i = 0; i < permissions.length; i++) {
+                    markAsAsked(permissions[i]);
+                }
+
+                boolean canWrite = permissions[0] == WRITE_PERMISSION &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                Log.i(TAG, String.valueOf(canWrite));
+
+                if (canWrite)
+                    startCapture();
+                break;
+        }
+    }
+
+    private boolean hasPermission(String permission) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
+        }
+
+        return true;
+
+    }
+
+    private boolean shoudAskPermission(String permission) {
+        return (mPrefHelper.getBoolean(permission, true));
+    }
+
+    private void markAsAsked(String permission) {
+
+        mPrefHelper.putBoolean(permission, false);
+
+    }
+
+
 }

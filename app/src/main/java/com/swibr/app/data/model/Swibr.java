@@ -2,36 +2,37 @@ package com.swibr.app.data.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 public class Swibr implements Comparable<Swibr>, Parcelable {
 
-    public Profile profile;
+    public Article article;
 
     public Swibr() {
+
     }
 
-    public Swibr(Profile profile) {
-        this.profile = profile;
+    public Swibr(Article article) {
+        this.article = article;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Swibr swibr = (Swibr) o;
 
-        return !(profile != null ? !profile.equals(swibr.profile) : swibr.profile != null);
+        return article.equals(swibr.article);
     }
 
     @Override
     public int hashCode() {
-        return profile != null ? profile.hashCode() : 0;
+        return article != null ? article.hashCode() : 0;
     }
 
     @Override
-    public int compareTo(Swibr another) {
-        return profile.name.first.compareToIgnoreCase(another.profile.name.first);
+    public int compareTo(@NonNull Swibr another) {
+        return article.title.compareToIgnoreCase(another.article.title);
     }
 
     @Override
@@ -41,11 +42,11 @@ public class Swibr implements Comparable<Swibr>, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(this.profile, 0);
+        dest.writeParcelable((Parcelable) this.article, 0);
     }
 
     protected Swibr(Parcel in) {
-        this.profile = in.readParcelable(Profile.class.getClassLoader());
+        this.article = in.readParcelable(Article.class.getClassLoader());
     }
 
     public static final Parcelable.Creator<Swibr> CREATOR = new Parcelable.Creator<Swibr>() {

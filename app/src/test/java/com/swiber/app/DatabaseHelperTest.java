@@ -49,11 +49,11 @@ public class DatabaseHelperTest {
         result.assertReceivedOnNext(swibrs);
 
         Cursor cursor = mDatabaseHelper.getBriteDb()
-                .query("SELECT * FROM " + Db.SwibrProfileTable.TABLE_NAME);
+                .query("SELECT * FROM " + Db.SwibrArticleTable.TABLE_NAME);
         assertEquals(2, cursor.getCount());
         for (Swibr swibr : swibrs) {
             cursor.moveToNext();
-            assertEquals(swibr.profile, Db.SwibrProfileTable.parseCursor(cursor));
+            assertEquals(swibr.profile, Db.SwibrArticleTable.parseCursor(cursor));
         }
     }
 

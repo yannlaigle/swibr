@@ -1,13 +1,13 @@
 package com.swibr.app.ui.main;
 
-import java.util.List;
-
-import com.swibr.app.data.model.Swibr;
+import com.swibr.app.data.model.Article;
 import com.swibr.app.ui.base.MvpView;
+
+import java.util.List;
 
 public interface MainMvpView extends MvpView {
 
-    void showSwibrs(List<Swibr> swibrs);
+    void showSwibrs(List<Article> swibrs);
 
     void showSwibrsEmpty();
 

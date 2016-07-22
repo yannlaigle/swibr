@@ -1,18 +1,20 @@
 package com.swibr.app.ui.main;
 
+import android.util.Log;
+
+import com.swibr.app.data.DataManager;
+import com.swibr.app.data.model.Article;
+import com.swibr.app.ui.base.BasePresenter;
+
 import java.util.List;
 
 import javax.inject.Inject;
 
-import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
-import com.swibr.app.data.DataManager;
-import com.swibr.app.data.model.Swibr;
-import com.swibr.app.ui.base.BasePresenter;
 
 public class MainPresenter extends BasePresenter<MainMvpView> {
 
@@ -42,7 +44,7 @@ public class MainPresenter extends BasePresenter<MainMvpView> {
         mSubscription = mDataManager.getSwibrs()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Subscriber<List<Swibr>>() {
+                .subscribe(new Subscriber<List<Article>>() {
                     @Override
                     public void onCompleted() {
                     }
@@ -54,11 +56,12 @@ public class MainPresenter extends BasePresenter<MainMvpView> {
                     }
 
                     @Override
-                    public void onNext(List<Swibr> swibrs) {
-                        if (swibrs.isEmpty()) {
+                    public void onNext(List<Article> article) {
+                        Log.d("MainPresenter", "Next");
+                        if (article.isEmpty()) {
                             getMvpView().showSwibrsEmpty();
                         } else {
-                            getMvpView().showSwibrs(swibrs);
+                            getMvpView().showSwibrs(article);
                         }
                     }
                 });

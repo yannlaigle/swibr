@@ -1,5 +1,12 @@
 package com.swibr.app.data;
 
+import com.swibr.app.data.local.DatabaseHelper;
+import com.swibr.app.data.local.PreferencesHelper;
+import com.swibr.app.data.model.Article;
+import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.SwibrsService;
+import com.swibr.app.util.EventPosterHelper;
+
 import java.util.List;
 
 import javax.inject.Inject;
@@ -8,14 +15,6 @@ import javax.inject.Singleton;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
-import rx.functions.Func2;
-
-import com.swibr.app.data.local.DatabaseHelper;
-import com.swibr.app.data.local.PreferencesHelper;
-import com.swibr.app.data.model.Swibr;
-import com.swibr.app.data.remote.OcrService;
-import com.swibr.app.data.remote.SwibrsService;
-import com.swibr.app.util.EventPosterHelper;
 
 @Singleton
 public class DataManager {
@@ -40,25 +39,25 @@ public class DataManager {
         return mPreferencesHelper;
     }
 
-    public Observable<Swibr> syncSwibrs() {
+    public Observable<Article> syncSwibrs() {
 
         // TODO push new items
 
         return mSwibrsService.getSwibrs()
-                .concatMap(new Func1<List<Swibr>, Observable<Swibr>>() {
+                .concatMap(new Func1<List<Article>, Observable<Article>>() {
                     @Override
-                    public Observable<Swibr> call(List<Swibr> swibrs) {
-                    return mDatabaseHelper.setSwibrs(swibrs);
+                    public Observable<Article> call(List<Article> articles) {
+                    return mDatabaseHelper.setSwibrs(articles);
                     }
                 });
     }
 
-    public Observable<List<Swibr>> getSwibrs() {
+    public Observable<List<Article>> getSwibrs() {
         return mDatabaseHelper.getSwibrs().distinct();
     }
 
-    public Observable<Swibr> addSwibr(Swibr newSwibr) {
-        return mDatabaseHelper.saveSwibr(newSwibr);
+    public Observable<Article> addSwibr(Article article) {
+        return mDatabaseHelper.saveSwibr(article);
     }
 
     /// Helper method to post events from doOnCompleted.

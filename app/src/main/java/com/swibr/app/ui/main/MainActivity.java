@@ -8,11 +8,11 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.net.Uri;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -21,20 +21,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
-import android.widget.Toast;
 
-import java.util.Collections;
-import java.util.List;
-
-import javax.inject.Inject;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
 import com.swibr.app.R;
 import com.swibr.app.data.SyncService;
+import com.swibr.app.data.model.Article;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.capture.CaptureService;
@@ -43,6 +35,14 @@ import com.swibr.app.ui.drawer.ObjectDrawerItem;
 import com.swibr.app.ui.tutorial.TutorialActivity;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.DialogFactory;
+
+import java.util.Collections;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 public class MainActivity extends BaseActivity implements MainMvpView {
 
@@ -430,8 +430,8 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     /***** MVP View methods implementation *****/
 
     @Override
-    public void showSwibrs(List<Swibr> swibrs) {
-        mSwibrsAdapter.setSwibrs(swibrs);
+    public void showSwibrs(List<Article> articles) {
+        mSwibrsAdapter.setSwibrs(articles);
         mSwibrsAdapter.notifyDataSetChanged();
     }
 
@@ -443,7 +443,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
     @Override
     public void showSwibrsEmpty() {
-        mSwibrsAdapter.setSwibrs(Collections.<Swibr>emptyList());
+        mSwibrsAdapter.setSwibrs(Collections.<Article>emptyList());
         mSwibrsAdapter.notifyDataSetChanged();
     }
 }

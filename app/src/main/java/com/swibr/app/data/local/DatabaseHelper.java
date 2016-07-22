@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
+import com.swibr.app.data.model.Article;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +16,6 @@ import javax.inject.Singleton;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func1;
-import com.swibr.app.data.model.Swibr;
 
 @Singleton
 public class DatabaseHelper {
@@ -55,17 +55,17 @@ public class DatabaseHelper {
         });
     }
 
-    public Observable<Swibr> saveSwibr(final Swibr newSwibr) {
-        return Observable.create(new Observable.OnSubscribe<Swibr>() {
+    public Observable<Article> saveSwibr(final Article article) {
+        return Observable.create(new Observable.OnSubscribe<Article>() {
             @Override
-            public void call(Subscriber<? super Swibr> subscriber) {
+            public void call(Subscriber<? super Article> subscriber) {
                 if (subscriber.isUnsubscribed()) return;
                 BriteDatabase.Transaction transaction = mDb.newTransaction();
                 try {
-                    long result = mDb.insert(Db.SwibrProfileTable.TABLE_NAME,
-                            Db.SwibrProfileTable.toContentValues(newSwibr.profile),
+                    long result = mDb.insert(Db.SwibrArticleTable.TABLE_NAME,
+                            Db.SwibrArticleTable.toContentValues(article),
                             SQLiteDatabase.CONFLICT_REPLACE);
-                    if (result >= 0) subscriber.onNext(newSwibr);
+                    if (result >= 0) subscriber.onNext(article);
                     transaction.markSuccessful();
                     subscriber.onCompleted();
                 } finally {
@@ -75,19 +75,19 @@ public class DatabaseHelper {
         });
     }
 
-    public Observable<Swibr> setSwibrs(final Collection<Swibr> newSwibrs) {
-        return Observable.create(new Observable.OnSubscribe<Swibr>() {
+    public Observable<Article> setSwibrs(final Collection<Article> articles) {
+        return Observable.create(new Observable.OnSubscribe<Article>() {
             @Override
-            public void call(Subscriber<? super Swibr> subscriber) {
+            public void call(Subscriber<? super Article> subscriber) {
                 if (subscriber.isUnsubscribed()) return;
                 BriteDatabase.Transaction transaction = mDb.newTransaction();
                 try {
-                    mDb.delete(Db.SwibrProfileTable.TABLE_NAME, null);
-                    for (Swibr swibr : newSwibrs) {
-                        long result = mDb.insert(Db.SwibrProfileTable.TABLE_NAME,
-                                Db.SwibrProfileTable.toContentValues(swibr.profile),
+                    mDb.delete(Db.SwibrArticleTable.TABLE_NAME, null);
+                    for (Article article : articles) {
+                        long result = mDb.insert(Db.SwibrArticleTable.TABLE_NAME,
+                                Db.SwibrArticleTable.toContentValues(article),
                                 SQLiteDatabase.CONFLICT_REPLACE);
-                        if (result >= 0) subscriber.onNext(swibr);
+                        if (result >= 0) subscriber.onNext(article);
                     }
                     transaction.markSuccessful();
                     subscriber.onCompleted();
@@ -98,13 +98,13 @@ public class DatabaseHelper {
         });
     }
 
-    public Observable<List<Swibr>> getSwibrs() {
-        return mDb.createQuery(Db.SwibrProfileTable.TABLE_NAME,
-                "SELECT * FROM " + Db.SwibrProfileTable.TABLE_NAME)
-                .mapToList(new Func1<Cursor, Swibr>() {
+    public Observable<List<Article>> getSwibrs() {
+        return mDb.createQuery(Db.SwibrArticleTable.TABLE_NAME,
+                "SELECT * FROM " + Db.SwibrArticleTable.TABLE_NAME)
+                .mapToList(new Func1<Cursor, Article>() {
                     @Override
-                    public Swibr call(Cursor cursor) {
-                    return new Swibr(Db.SwibrProfileTable.parseCursor(cursor));
+                    public Article call(Cursor cursor) {
+                    return Db.SwibrArticleTable.parseCursor(cursor);
                     }
                 });
     }

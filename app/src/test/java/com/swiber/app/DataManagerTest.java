@@ -1,4 +1,4 @@
-package com.swibr.app;
+package com.swiber.app;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,8 +44,8 @@ public class DataManagerTest {
 
     @Before
     public void setUp() {
-        mDataManager = new DataManager(mMockSwibrsService, mMockPreferencesHelper,
-                mMockDatabaseHelper, mEventPosterHelper);
+//        mDataManager = new DataManager(mMockSwibrsService, mMockPreferencesHelper,
+//                mMockDatabaseHelper, mEventPosterHelper);
     }
 
     @Test

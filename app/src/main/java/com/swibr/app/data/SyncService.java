@@ -7,16 +7,17 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
 
+import com.swibr.app.SwibrApplication;
+import com.swibr.app.data.model.Article;
+import com.swibr.app.util.AndroidComponentUtil;
+import com.swibr.app.util.NetworkUtil;
+
 import javax.inject.Inject;
 
 import rx.Observer;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
-import com.swibr.app.SwibrApplication;
-import com.swibr.app.data.model.Swibr;
-import com.swibr.app.util.AndroidComponentUtil;
-import com.swibr.app.util.NetworkUtil;
 
 public class SyncService extends Service {
 
@@ -54,7 +55,7 @@ public class SyncService extends Service {
 
         mSubscription = mDataManager.syncSwibrs()
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Observer<Swibr>() {
+                .subscribe(new Observer<Article>() {
                     @Override
                     public void onCompleted() {
                         Timber.i("Synced successfully!");
@@ -69,7 +70,7 @@ public class SyncService extends Service {
                     }
 
                     @Override
-                    public void onNext(Swibr swibr) {
+                    public void onNext(Article article) {
 
                     }
                 });
