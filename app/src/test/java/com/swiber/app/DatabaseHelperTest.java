@@ -1,6 +1,15 @@
-package com.swibr.app;
+package com.swiber.app;
 
 import android.database.Cursor;
+
+
+import com.swibr.app.BuildConfig;
+import com.swibr.app.data.local.DatabaseHelper;
+import com.swibr.app.data.local.DbOpenHelper;
+import com.swibr.app.data.local.SwibrArticleTable;
+import com.swibr.app.data.model.Article;
+import com.swibr.app.test.common.TestDataFactory;
+import com.swibr.app.util.DefaultConfig;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,12 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import rx.observers.TestSubscriber;
-import com.swibr.app.data.local.DatabaseHelper;
-import com.swibr.app.data.local.Db;
-import com.swibr.app.data.local.DbOpenHelper;
-import com.swibr.app.data.model.Swibr;
-import com.swibr.app.test.common.TestDataFactory;
-import com.swibr.app.util.DefaultConfig;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -39,36 +42,36 @@ public class DatabaseHelperTest {
 
     @Test
     public void setSwibrs() {
-        Swibr swibr1 = TestDataFactory.makeSwibr("r1");
-        Swibr swibr2 = TestDataFactory.makeSwibr("r2");
-        List<Swibr> swibrs = Arrays.asList(swibr1, swibr2);
+        Article article1 = TestDataFactory.createArticle("r1");
+        Article article2 = TestDataFactory.createArticle("r2");
+        List<Article> articles = Arrays.asList(article1, article2);
 
-        TestSubscriber<Swibr> result = new TestSubscriber<>();
-        mDatabaseHelper.setSwibrs(swibrs).subscribe(result);
+        TestSubscriber<Article> result = new TestSubscriber<>();
+        mDatabaseHelper.setSwibrs(articles).subscribe(result);
         result.assertNoErrors();
-        result.assertReceivedOnNext(swibrs);
+        result.assertReceivedOnNext(articles);
 
         Cursor cursor = mDatabaseHelper.getBriteDb()
-                .query("SELECT * FROM " + Db.SwibrArticleTable.TABLE_NAME);
+                .query("SELECT * FROM " + SwibrArticleTable.TABLE_NAME);
         assertEquals(2, cursor.getCount());
-        for (Swibr swibr : swibrs) {
+        for (Article art : articles) {
             cursor.moveToNext();
-            assertEquals(swibr.profile, Db.SwibrArticleTable.parseCursor(cursor));
+            assertEquals(art, SwibrArticleTable.parseCursor(cursor));
         }
     }
 
     @Test
     public void getSwibrs() {
-        Swibr swibr1 = TestDataFactory.makeSwibr("r1");
-        Swibr swibr2 = TestDataFactory.makeSwibr("r2");
-        List<Swibr> swibrs = Arrays.asList(swibr1, swibr2);
+        Article article1 = TestDataFactory.createArticle("r1");
+        Article article2 = TestDataFactory.createArticle("r2");
+        List<Article> articles = Arrays.asList(article1, article2);
 
-        mDatabaseHelper.setSwibrs(swibrs).subscribe();
+        mDatabaseHelper.setSwibrs(articles).subscribe();
 
-        TestSubscriber<List<Swibr>> result = new TestSubscriber<>();
+        TestSubscriber<List<Article>> result = new TestSubscriber<>();
         mDatabaseHelper.getSwibrs().subscribe(result);
         result.assertNoErrors();
-        result.assertValue(swibrs);
+        result.assertValue(articles);
     }
 
 }

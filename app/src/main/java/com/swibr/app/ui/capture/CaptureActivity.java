@@ -37,6 +37,9 @@ import com.swibr.app.R;
 import com.swibr.app.data.DataManager;
 import com.swibr.app.data.local.PreferencesHelper;
 import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Haven.HavenAdapter;
+import com.swibr.app.data.model.Haven.TextBlock;
+import com.swibr.app.data.model.Haven.TextResult;
 import com.swibr.app.data.model.Name;
 import com.swibr.app.data.model.Profile;
 import com.swibr.app.data.model.Swibr;
@@ -333,49 +336,57 @@ public class CaptureActivity extends BaseActivity {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
-                Call<ResponseBody> engineCall = null;
 
+                String content = null;
+                TextResult textResult = null;
                 try {
-                    //Check response contenttype is Json
-                    Gson json = new Gson();
-                    Log.d(TAG, "Body response : " + response.body().string());
-                    Article[] listArt = json.fromJson(response.body().string(), Article[].class);
-
-                    Log.d(TAG, "JSON decoded : " + listArt.length);
-                    engineCall = mSwibrService.storeSwibe(json.toString());
+                    content = response.body().string();
+                    Log.d(TAG, "Body response : " + content);
+                    textResult = HavenAdapter.fromJson(content);
 
                 } catch (IOException e) {
-                    Log.e(TAG, "IOException caught : ", e);
+                    Log.e(TAG, "AnalyzeImageFile IOException caught : ", e);
                 }
                 Log.d(TAG, "Going for engine call");
 
-                if (engineCall == null) {
-                    Log.d(TAG, "Canceling call");
-                    return;
-                }
+                if (textResult != null) {
+                    makeEngineCall(textResult);
+                } else
+                    Log.d(TAG, "Canceled engine call");
 
-                engineCall.enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
-                        try {
-
-                            Log.i(TAG, "Response : " + response.body().string());
-
-                        } catch (IOException e) {
-                            Log.v(TAG, "IOException on Engine call caught : ", e);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        Log.e("Engine call", "onFailure", t);
-                    }
-                });
             }
 
             @Override
             public void onFailure(Throwable t) {
                 Log.e("uploadImageFile", "onFailure", t);
+            }
+        });
+    }
+
+    private void makeEngineCall(TextResult textResult) {
+
+        String json = HavenAdapter.toJsonString(textResult);
+        Call<ResponseBody> engineCall = mSwibrService.search(json);
+
+        engineCall.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+                String content = null;
+                try {
+                    content = response.body().string();
+                    //TODO parse the data and save the article
+
+                } catch (IOException e) {
+                    Log.e(TAG, "EngineCall IOException caught : ", e);
+                }
+
+                if (content == null) return;
+                Log.i(TAG, "EngineCall response : " + content);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e("Engine call", "onFailure", t);
             }
         });
     }

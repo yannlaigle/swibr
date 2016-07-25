@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.Date;
+import java.util.List;
 
 public class Profile implements Parcelable {
     public Name name;
@@ -12,6 +13,7 @@ public class Profile implements Parcelable {
     public String avatar;
     public Date dateOfBirth;
     public String bio;
+    public List<Article> articles;
 
     public Profile() {
     }

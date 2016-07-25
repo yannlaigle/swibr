@@ -64,7 +64,7 @@ public class SyncService extends Service {
 
                     @Override
                     public void onError(Throwable e) {
-                        Timber.w(e, "Error syncing.");
+                        Timber.e(e, "Error syncing.");
                         stopSelf(startId);
 
                     }

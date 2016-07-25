@@ -1,13 +1,10 @@
 package com.swibr.app.test.common;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import com.swibr.app.data.model.Name;
-import com.swibr.app.data.model.Profile;
-import com.swibr.app.data.model.Swibr;
+import com.swibr.app.data.model.Article;
 
 /**
  * Factory class that makes instances of data models with random field values.
@@ -19,34 +16,42 @@ public class TestDataFactory {
         return UUID.randomUUID().toString();
     }
 
-    public static Swibr makeSwibr(String uniqueSuffix) {
-        return new Swibr(makeProfile(uniqueSuffix));
+    public static Article createArticle(String uniqueSuffix) {
+        return new Article(makeArticle(uniqueSuffix));
     }
 
-    public static List<Swibr> makeListSwibrs(int number) {
-        List<Swibr> swibrs = new ArrayList<>();
+    public static List<Article> makeListArticles(int number) {
+        List<Article> articles = new ArrayList<>();
         for (int i = 0; i < number; i++) {
-            swibrs.add(makeSwibr(String.valueOf(i)));
+            articles.add(createArticle(String.valueOf(i)));
         }
-        return swibrs;
+        return articles;
     }
 
-    public static Profile makeProfile(String uniqueSuffix) {
-        Profile profile = new Profile();
-        profile.email = "email" + uniqueSuffix + "@ribot.co.uk";
-        profile.name = makeName(uniqueSuffix);
-        profile.dateOfBirth = new Date();
-        profile.hexColor = "#0066FF";
-        profile.avatar = "http://api.ribot.io/images/" + uniqueSuffix;
-        profile.bio = randomUuid();
-        return profile;
-    }
+    public static Article makeArticle(String uniqueSuffix) {
+        Article article = new Article();
+//        article.email = "email" + uniqueSuffix + "@ribot.co.uk";
+//        article.name = makeName(uniqueSuffix);
+//        article.dateOfBirth = new Date();
+//        article.hexColor = "#0066FF";
+//        article.avatar = "http://api.ribot.io/images/" + uniqueSuffix;
+//        article.bio = randomUuid();
 
-    public static Name makeName(String uniqueSuffix) {
-        Name name = new Name();
-        name.first = "Name-" + uniqueSuffix;
-        name.last = "Surname-" + uniqueSuffix;
-        return name;
+        article.imgUrl = "http://api.ribot.io/images/" + uniqueSuffix;
+        article.urlWeb = "http://Urlweb";
+        article.urlOrigin = "";
+        article.description = "Test description";
+        article.title = "Test title";
+        article.id = 0;
+
+        return article;
     }
+//
+//    public static Name makeName(String uniqueSuffix) {
+//        Name name = new Name();
+//        name.first = "Name-" + uniqueSuffix;
+//        name.last = "Surname-" + uniqueSuffix;
+//        return name;
+//    }
 
 }

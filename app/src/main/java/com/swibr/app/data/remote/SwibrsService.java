@@ -26,7 +26,7 @@ import com.swibr.app.util.ProgressRequestBody;
 
 public interface SwibrsService {
 
-    String ENDPOINT = "http://10.0.2.2:3000/api/";
+    String ENDPOINT = "http://52.58.22.252/api/";
     int TIMEOUT = 60;
 
     // TODO
@@ -38,8 +38,10 @@ public interface SwibrsService {
     Observable<List<Article>> getSwibrs();
 
     @POST("store")
-    Call<ResponseBody> storeSwibe(
-            @Query("data") String data);
+    Call<ResponseBody> storeSwibe(@Query("data") String data);
+
+    @POST("search")
+    Call<ResponseBody> search(@Query("json") String json);
 
     /********
      * Helper class that sets up a new services

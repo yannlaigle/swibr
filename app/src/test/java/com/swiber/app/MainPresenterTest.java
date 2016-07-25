@@ -1,4 +1,4 @@
-package com.swibr.app;
+package com.swiber.app;
 
 import org.junit.After;
 import org.junit.Before;
@@ -13,6 +13,7 @@ import java.util.List;
 
 import rx.Observable;
 import com.swibr.app.data.DataManager;
+import com.swibr.app.data.model.Article;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.test.common.TestDataFactory;
 import com.swibr.app.ui.main.MainMvpView;
@@ -47,13 +48,13 @@ public class MainPresenterTest {
 
     @Test
     public void loadSwibrsReturnsSwibrs() {
-        List<Swibr> swibrs = TestDataFactory.makeListSwibrs(10);
-        doReturn(Observable.just(swibrs))
+        List<Article> articles = TestDataFactory.makeListArticles(10);
+        doReturn(Observable.just(articles))
                 .when(mMockDataManager)
                 .getSwibrs();
 
         mMainPresenter.loadSwibrs();
-        verify(mMockMainMvpView).showSwibrs(swibrs);
+        verify(mMockMainMvpView).showSwibrs(articles);
         verify(mMockMainMvpView, never()).showSwibrsEmpty();
         verify(mMockMainMvpView, never()).showError();
     }
@@ -66,7 +67,7 @@ public class MainPresenterTest {
 
         mMainPresenter.loadSwibrs();
         verify(mMockMainMvpView).showSwibrsEmpty();
-        verify(mMockMainMvpView, never()).showSwibrs(anyListOf(Swibr.class));
+        verify(mMockMainMvpView, never()).showSwibrs(anyListOf(Article.class));
         verify(mMockMainMvpView, never()).showError();
     }
 
@@ -79,6 +80,6 @@ public class MainPresenterTest {
         mMainPresenter.loadSwibrs();
         verify(mMockMainMvpView).showError();
         verify(mMockMainMvpView, never()).showSwibrsEmpty();
-        verify(mMockMainMvpView, never()).showSwibrs(anyListOf(Swibr.class));
+        verify(mMockMainMvpView, never()).showSwibrs(anyListOf(Article.class));
     }
 }

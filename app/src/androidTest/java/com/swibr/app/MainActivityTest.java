@@ -15,6 +15,8 @@ import org.junit.runner.RunWith;
 import java.util.List;
 
 import rx.Observable;
+
+import com.swibr.app.data.model.Article;
 import com.swibr.app.data.model.Swibr;
 import com.swibr.app.test.common.TestDataFactory;
 import com.swibr.app.test.common.rules.TestComponentRule;
@@ -51,21 +53,21 @@ public class MainActivityTest {
 
     @Test
     public void listOfSwibrsShows() {
-        List<Swibr> testDataSwibrs = TestDataFactory.makeListSwibrs(20);
+        List<Article> testDataSwibrs = TestDataFactory.makeListArticles(20);
         when(component.getMockDataManager().getSwibrs())
                 .thenReturn(Observable.just(testDataSwibrs));
 
         main.launchActivity(null);
 
         int position = 0;
-        for (Swibr swibr : testDataSwibrs) {
+        for (Article art : testDataSwibrs) {
             onView(withId(R.id.recycler_view))
                     .perform(RecyclerViewActions.scrollToPosition(position));
-            String name = String.format("%s %s", swibr.profile.name.first,
-                    swibr.profile.name.last);
+            String name = String.format("%s %s", art.title,
+                    art.description);
             onView(withText(name))
                     .check(matches(isDisplayed()));
-            onView(withText(swibr.profile.email))
+            onView(withText(art.userid))
                     .check(matches(isDisplayed()));
             position++;
         }

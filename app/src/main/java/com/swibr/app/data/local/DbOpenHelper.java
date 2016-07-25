@@ -24,7 +24,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
         try {
             //Uncomment line below if you want to enable foreign keys
             //db.execSQL("PRAGMA foreign_keys=ON;");
-            db.execSQL(Db.SwibrArticleTable.CREATE);
+            db.execSQL(SwibrArticleTable.CREATE);
             //Add other tables here
             db.setTransactionSuccessful();
         } finally {

@@ -2,6 +2,8 @@ package com.swibr.app.data.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+
 
 public class Article implements Comparable<Article>, Parcelable {
 
@@ -14,9 +16,20 @@ public class Article implements Comparable<Article>, Parcelable {
     public String urlOrigin = "";
     public String hexColor = "#0066FF";
 
+
     public Article() {
     }
 
+    public Article(Article article){
+
+        id = article.id;
+        userid = article.userid;
+        title = article.title;
+        description = article.description;
+        urlWeb = article.urlWeb;
+        imgUrl = article.imgUrl;
+        urlOrigin = article.urlOrigin;
+    }
     public Article(Parcel p) {
         id = p.readInt();
         userid = p.readInt();
@@ -72,7 +85,7 @@ public class Article implements Comparable<Article>, Parcelable {
     }
 
     @Override
-    public int compareTo(Article another) {
+    public int compareTo(@NonNull Article another) {
         return 0;
     }
 }

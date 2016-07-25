@@ -62,8 +62,8 @@ public class DatabaseHelper {
                 if (subscriber.isUnsubscribed()) return;
                 BriteDatabase.Transaction transaction = mDb.newTransaction();
                 try {
-                    long result = mDb.insert(Db.SwibrArticleTable.TABLE_NAME,
-                            Db.SwibrArticleTable.toContentValues(article),
+                    long result = mDb.insert(SwibrArticleTable.TABLE_NAME,
+                            SwibrArticleTable.toContentValues(article),
                             SQLiteDatabase.CONFLICT_REPLACE);
                     if (result >= 0) subscriber.onNext(article);
                     transaction.markSuccessful();
@@ -82,10 +82,10 @@ public class DatabaseHelper {
                 if (subscriber.isUnsubscribed()) return;
                 BriteDatabase.Transaction transaction = mDb.newTransaction();
                 try {
-                    mDb.delete(Db.SwibrArticleTable.TABLE_NAME, null);
+                    mDb.delete(SwibrArticleTable.TABLE_NAME, null);
                     for (Article article : articles) {
-                        long result = mDb.insert(Db.SwibrArticleTable.TABLE_NAME,
-                                Db.SwibrArticleTable.toContentValues(article),
+                        long result = mDb.insert(SwibrArticleTable.TABLE_NAME,
+                                SwibrArticleTable.toContentValues(article),
                                 SQLiteDatabase.CONFLICT_REPLACE);
                         if (result >= 0) subscriber.onNext(article);
                     }
@@ -99,12 +99,12 @@ public class DatabaseHelper {
     }
 
     public Observable<List<Article>> getSwibrs() {
-        return mDb.createQuery(Db.SwibrArticleTable.TABLE_NAME,
-                "SELECT * FROM " + Db.SwibrArticleTable.TABLE_NAME)
+        return mDb.createQuery(SwibrArticleTable.TABLE_NAME,
+                "SELECT * FROM " + SwibrArticleTable.TABLE_NAME)
                 .mapToList(new Func1<Cursor, Article>() {
                     @Override
                     public Article call(Cursor cursor) {
-                    return Db.SwibrArticleTable.parseCursor(cursor);
+                    return SwibrArticleTable.parseCursor(cursor);
                     }
                 });
     }
