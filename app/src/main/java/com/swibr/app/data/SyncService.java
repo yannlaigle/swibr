@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.swibr.app.SwibrApplication;
 import com.swibr.app.data.model.Article;
@@ -23,6 +24,7 @@ public class SyncService extends Service {
 
     @Inject DataManager mDataManager;
     private Subscription mSubscription;
+    private String TAG = "SyncService";
 
     public static Intent getStartIntent(Context context) {
         return new Intent(context, SyncService.class);
@@ -86,6 +88,7 @@ public class SyncService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(TAG, "onBind");
         return null;
     }
 

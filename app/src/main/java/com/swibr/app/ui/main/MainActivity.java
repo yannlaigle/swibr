@@ -27,7 +27,6 @@ import android.widget.Switch;
 import com.swibr.app.R;
 import com.swibr.app.data.SyncService;
 import com.swibr.app.data.model.Article;
-import com.swibr.app.data.model.Swibr;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.capture.CaptureService;
 import com.swibr.app.ui.drawer.DrawerItemCustomAdapter;

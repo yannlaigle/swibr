@@ -2,6 +2,10 @@ package com.swibr.app.data.remote;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.ResponseBody;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
+import com.swibr.app.data.model.Article;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -11,18 +15,9 @@ import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;
 import retrofit.RxJavaCallAdapterFactory;
 import retrofit.http.GET;
-import retrofit.http.Multipart;
 import retrofit.http.POST;
-import retrofit.http.Part;
 import retrofit.http.Query;
 import rx.Observable;
-
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.ResponseBody;
-import com.squareup.okhttp.logging.HttpLoggingInterceptor;
-import com.swibr.app.data.model.Article;
-import com.swibr.app.data.model.Swibr;
-import com.swibr.app.util.ProgressRequestBody;
 
 public interface SwibrsService {
 

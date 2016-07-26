@@ -1,6 +1,5 @@
 package com.swibr.app.ui.capture;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,7 +9,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -19,7 +17,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.swibr.app.R;
-import com.swibr.app.data.model.Swibr;
+import com.swibr.app.data.model.Article;
 import com.swibr.app.ui.main.MainActivity;
 
 import java.io.File;
@@ -191,7 +189,7 @@ public class CaptureService extends Service {
      * Create a capture notification
      * @param image
      */
-    private void captureNotification(Swibr swibr, File image) {
+    private void captureNotification(Article article, File image) {
 
         // TODO
         // - share

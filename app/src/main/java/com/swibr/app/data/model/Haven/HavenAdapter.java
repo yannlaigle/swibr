@@ -9,7 +9,7 @@ import com.google.gson.Gson;
  */
 public class HavenAdapter {
 
-    public final String TAG = "HavenAdapter";
+    public final static String TAG = "HavenAdapter";
 
     public static TextResult fromJson(String content) {
         //Check response contenttype is Json
