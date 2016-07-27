@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.ResponseBody;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

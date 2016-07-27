@@ -3,7 +3,7 @@ package com.swibr.app.data.local;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 
 /**
  * Created by Shide on 23/07/2016.

@@ -16,6 +16,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,7 +27,7 @@ import android.widget.Switch;
 
 import com.swibr.app.R;
 import com.swibr.app.data.SyncService;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.capture.CaptureService;
 import com.swibr.app.ui.drawer.DrawerItemCustomAdapter;
@@ -49,10 +50,13 @@ public class MainActivity extends BaseActivity implements MainMvpView {
     private static final int START_CAPTURE_SERVICE_REQUEST_CODE = 1000;
     private static final String EXTRA_TRIGGER_SYNC_FLAG = "com.swibr.app.ui.main.MainActivity.EXTRA_TRIGGER_SYNC_FLAG";
 
-    @Inject MainPresenter mMainPresenter;
-    @Inject SwibrsAdapter mSwibrsAdapter;
+    @Inject
+    MainPresenter mMainPresenter;
+    @Inject
+    SwibrsAdapter mSwibrsAdapter;
 
-    @Bind(R.id.recycler_view) RecyclerView mRecyclerView;
+    @Bind(R.id.recycler_view)
+    RecyclerView mRecyclerView;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ImageButton mDrawerBtn;
@@ -96,7 +100,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         // - http://blog.teamtreehouse.com/add-navigation-drawer-android
         final Context context = this;
 
-        mDrawerBtn = (ImageButton)findViewById(R.id.drawer_btn);
+        mDrawerBtn = (ImageButton) findViewById(R.id.drawer_btn);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
@@ -168,7 +172,7 @@ public class MainActivity extends BaseActivity implements MainMvpView {
                 // Update runCaptureService value
                 SharedPreferences.Editor prefEdit = prefs.edit();
                 prefEdit.putBoolean("runCaptureService", isChecked);
-                prefEdit.commit();
+                prefEdit.apply();
 
                 if (isChecked) {
 
@@ -203,16 +207,14 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
         final Context context = this;
         final boolean isCaptureServiceRunning = AndroidComponentUtil.isServiceRunning(context, CaptureService.class);
-
+        Log.d(TAG, "isCaptureServiceRunning : " + String.valueOf(isCaptureServiceRunning));
         // Service may on boot if enable see CaptureIntentReceiver
         if (!isCaptureServiceRunning) {
 
             // Check and request if needed DrawOverlay Permission required by Capture service for
             // displaying btn over UI for Android 6+.
-            if (
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                            && !Settings.canDrawOverlays(context)
-                    ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    !Settings.canDrawOverlays(context)) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
 
@@ -368,33 +370,33 @@ public class MainActivity extends BaseActivity implements MainMvpView {
         final boolean isUsageStatsRequested = prefs.getBoolean("requestedUsageStats", false);
         final boolean isUsageStatsEnabled = AndroidComponentUtil.isUsageStatsEnabled(context);
 
-        if(!isUsageStatsEnabled && !isUsageStatsRequested) {
+        if (!isUsageStatsEnabled && !isUsageStatsRequested) {
 
             new AlertDialog.Builder(context)
-                .setTitle(R.string.AuthDialog)
-                .setMessage(R.string.AuthDialogText)
-                .setCancelable(true)
-                .setNegativeButton(R.string.AuthDialogCancelBtn, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                    .setTitle(R.string.AuthDialog)
+                    .setMessage(R.string.AuthDialogText)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.AuthDialogCancelBtn, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
 
-                        // Update requestedUsageStats value
-                        SharedPreferences.Editor prefEdit = prefs.edit();
-                        prefEdit.putBoolean("requestedUsageStats", true);
-                        prefEdit.commit();
-                    }
-                })
-                .setPositiveButton(R.string.AuthDialogSettings, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                            // Update requestedUsageStats value
+                            SharedPreferences.Editor prefEdit = prefs.edit();
+                            prefEdit.putBoolean("requestedUsageStats", true);
+                            prefEdit.commit();
+                        }
+                    })
+                    .setPositiveButton(R.string.AuthDialogSettings, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
 
-                        // Update requestedUsageStats value
-                        SharedPreferences.Editor prefEdit = prefs.edit();
-                        prefEdit.putBoolean("requestedUsageStats", true);
-                        prefEdit.commit();
+                            // Update requestedUsageStats value
+                            SharedPreferences.Editor prefEdit = prefs.edit();
+                            prefEdit.putBoolean("requestedUsageStats", true);
+                            prefEdit.commit();
 
-                        startUsageStats();
-                    }
-                })
-                .show();
+                            startUsageStats();
+                        }
+                    })
+                    .show();
         }
     }
 
@@ -406,27 +408,30 @@ public class MainActivity extends BaseActivity implements MainMvpView {
 
     /**
      * Handle onActivityResult
+     *
      * @param requestCode
      * @param resultCode
      * @param data
      */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         final Context context = this;
 
         // Handle DrawOverlay Permission result for Android 6+
         if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                requestCode == START_CAPTURE_SERVICE_REQUEST_CODE
-        ) {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                        requestCode == START_CAPTURE_SERVICE_REQUEST_CODE
+                ) {
             if (Settings.canDrawOverlays(context)) {
                 startService(new Intent(context, CaptureService.class));
             }
         }
     }
 
-    /***** MVP View methods implementation *****/
+    /*****
+     * MVP View methods implementation
+     *****/
 
     @Override
     public void showSwibrs(List<Article> articles) {

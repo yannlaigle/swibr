@@ -3,7 +3,7 @@ package com.swibr.app.ui.main;
 import android.util.Log;
 
 import com.swibr.app.data.DataManager;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.ui.base.BasePresenter;
 
 import java.util.List;

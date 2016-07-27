@@ -15,8 +15,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 import com.swibr.app.R;
-import com.swibr.app.data.model.Article;
-import com.swibr.app.data.model.Swibr;
+import com.swibr.app.data.model.Article.Article;
 
 public class SwibrsAdapter extends RecyclerView.Adapter<SwibrsAdapter.SwibrViewHolder> {
 

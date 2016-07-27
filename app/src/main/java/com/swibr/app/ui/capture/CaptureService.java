@@ -17,7 +17,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.swibr.app.R;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.ui.main.MainActivity;
 
 import java.io.File;

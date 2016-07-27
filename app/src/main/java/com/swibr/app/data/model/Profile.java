@@ -3,6 +3,8 @@ package com.swibr.app.data.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.swibr.app.data.model.Article.Article;
+
 import java.util.Date;
 import java.util.List;
 

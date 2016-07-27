@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 
 /**
  * Factory class that makes instances of data models with random field values.

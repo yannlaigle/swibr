@@ -2,10 +2,11 @@ package com.swibr.app.data.local;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +22,7 @@ import rx.functions.Func1;
 public class DatabaseHelper {
 
     private final BriteDatabase mDb;
+    private static final String TAG = "DatabaseHelper";
 
     @Inject
     public DatabaseHelper(DbOpenHelper dbOpenHelper) {
@@ -68,7 +70,10 @@ public class DatabaseHelper {
                     if (result >= 0) subscriber.onNext(article);
                     transaction.markSuccessful();
                     subscriber.onCompleted();
+                } catch (Exception e) {
+                    Log.e(TAG, "saveSwibr Exception: ", e);
                 } finally {
+                    Log.d(TAG, "SaveSwibr : success");
                     transaction.end();
                 }
             }
@@ -104,7 +109,7 @@ public class DatabaseHelper {
                 .mapToList(new Func1<Cursor, Article>() {
                     @Override
                     public Article call(Cursor cursor) {
-                    return SwibrArticleTable.parseCursor(cursor);
+                        return SwibrArticleTable.parseCursor(cursor);
                     }
                 });
     }

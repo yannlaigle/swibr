@@ -1,4 +1,4 @@
-package com.swibr.app.data.model;
+package com.swibr.app.data.model.Article;
 
 import android.os.Parcel;
 import android.os.Parcelable;

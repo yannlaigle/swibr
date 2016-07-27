@@ -9,7 +9,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.swibr.app.SwibrApplication;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.util.AndroidComponentUtil;
 import com.swibr.app.util.NetworkUtil;
 

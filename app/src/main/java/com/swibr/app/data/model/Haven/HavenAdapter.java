@@ -4,9 +4,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-/**
- * Created by Shide on 25/07/2016.
- */
 public class HavenAdapter {
 
     public final static String TAG = "HavenAdapter";
@@ -22,6 +19,10 @@ public class HavenAdapter {
 
     public static String toJsonString(TextResult textResult) {
         Gson gson = new Gson();
+        String regexpChar = "[^\\p{L}\\p{Nd} \\n]+";
+        for (TextBlock block : textResult.text_block) {
+            block.text = block.text.replaceAll(regexpChar, "");//removing weird characters
+        }
         return gson.toJson(textResult.text_block, TextBlock[].class);
 
     }

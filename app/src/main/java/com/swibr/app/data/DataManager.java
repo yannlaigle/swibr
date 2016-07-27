@@ -2,7 +2,7 @@ package com.swibr.app.data;
 
 import com.swibr.app.data.local.DatabaseHelper;
 import com.swibr.app.data.local.PreferencesHelper;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.data.remote.OcrService;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.util.EventPosterHelper;

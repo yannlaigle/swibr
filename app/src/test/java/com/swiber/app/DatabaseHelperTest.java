@@ -7,7 +7,7 @@ import com.swibr.app.BuildConfig;
 import com.swibr.app.data.local.DatabaseHelper;
 import com.swibr.app.data.local.DbOpenHelper;
 import com.swibr.app.data.local.SwibrArticleTable;
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.test.common.TestDataFactory;
 import com.swibr.app.util.DefaultConfig;
 

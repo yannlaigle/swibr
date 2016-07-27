@@ -13,8 +13,7 @@ import java.util.List;
 
 import rx.Observable;
 import com.swibr.app.data.DataManager;
-import com.swibr.app.data.model.Article;
-import com.swibr.app.data.model.Swibr;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.test.common.TestDataFactory;
 import com.swibr.app.ui.main.MainMvpView;
 import com.swibr.app.ui.main.MainPresenter;

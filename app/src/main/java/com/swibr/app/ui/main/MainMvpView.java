@@ -1,6 +1,6 @@
 package com.swibr.app.ui.main;
 
-import com.swibr.app.data.model.Article;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.ui.base.MvpView;
 
 import java.util.List;

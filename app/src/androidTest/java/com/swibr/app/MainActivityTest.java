@@ -16,8 +16,7 @@ import java.util.List;
 
 import rx.Observable;
 
-import com.swibr.app.data.model.Article;
-import com.swibr.app.data.model.Swibr;
+import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.test.common.TestDataFactory;
 import com.swibr.app.test.common.rules.TestComponentRule;
 import com.swibr.app.ui.main.MainActivity;
