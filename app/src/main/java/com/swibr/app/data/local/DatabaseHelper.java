@@ -105,7 +105,7 @@ public class DatabaseHelper {
 
     public Observable<List<Article>> getSwibrs() {
         return mDb.createQuery(SwibrArticleTable.TABLE_NAME,
-                "SELECT * FROM " + SwibrArticleTable.TABLE_NAME)
+                "SELECT * FROM " + SwibrArticleTable.TABLE_NAME + " ORDER BY " + SwibrArticleTable.COLUMN_ID + " ASC")
                 .mapToList(new Func1<Cursor, Article>() {
                     @Override
                     public Article call(Cursor cursor) {

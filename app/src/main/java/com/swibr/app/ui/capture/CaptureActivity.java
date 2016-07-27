@@ -57,6 +57,8 @@ import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by hthetiot on 12/29/15.
@@ -456,7 +458,11 @@ public class CaptureActivity extends BaseActivity {
                 if (article == null) return;
 
                 Log.d(TAG, "EngineCall: Saving article");
-                mDataManager.addSwibr(article);
+
+                mDataManager.addSwibr(article)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe();
             }
 
             @Override

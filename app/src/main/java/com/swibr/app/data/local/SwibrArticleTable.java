@@ -37,12 +37,13 @@ public abstract class SwibrArticleTable {
 
     public static final String TABLE_NAME = "swibr_article";
 
-    private static final String COLUMN_ID = "id";
+    public static final String COLUMN_ID = "id";
     private static final String COLUMN_TITLE = "title";
     private static final String COLUMN_DESCRIPTION = "description";
     private static final String COLUMN_IMGURL = "imgurl";
     private static final String COLUMN_URL_ORIGIN = "urlorigin";
     private static final String COLUMN_URL_WEB = "urlweb";
+    private static final String COLUMN_CREATED = "created";
 
     public static final String CREATE =
             "CREATE TABLE " + TABLE_NAME + " (" +
