@@ -1,5 +1,8 @@
 package com.swibr.app.data.model.Haven;
 
+import android.content.Intent;
+import android.os.Bundle;
+
 /**
  * Created by Shide on 23/07/2016.
  */
@@ -10,6 +13,10 @@ public class TextBlock {
     public int top;
     public int width;
     public int height;
+    public Bundle lastIntentBundle;
+
+    public TextBlock() {
+    }
 
     public TextBlock(TextBlock textBlock) {
 

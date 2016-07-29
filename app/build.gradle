@@ -120,6 +120,7 @@ dependencies {
     }
 
     compile  "com.google.dagger:dagger:$DAGGER_VERSION"
+    compile "org.apache.directory.studio:org.apache.commons.io:2.4"
     provided 'org.glassfish:javax.annotation:10.0-b28' //Required by Dagger2
 
     // Instrumentation test dependencies

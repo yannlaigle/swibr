@@ -11,11 +11,9 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
-import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,35 +25,15 @@ import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
 
-import com.google.gson.JsonSyntaxException;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.ResponseBody;
 import com.swibr.app.R;
-import com.swibr.app.data.DataManager;
 import com.swibr.app.data.local.PreferencesHelper;
-import com.swibr.app.data.model.Article.Article;
-import com.swibr.app.data.model.Article.ArticleAdapter;
-import com.swibr.app.data.model.Haven.HavenAdapter;
-import com.swibr.app.data.model.Haven.TextResult;
-import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
-import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.ui.base.BaseActivity;
+import com.swibr.app.ui.handler.EngineHandler;
 import com.swibr.app.util.AndroidComponentUtil;
-import com.swibr.app.util.ProgressRequestBody;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import javax.inject.Inject;
-
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.Response;
-import retrofit.Retrofit;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * Created by hthetiot on 12/29/15.
@@ -72,57 +50,33 @@ public class CaptureActivity extends BaseActivity {
     private MediaProjection mMediaProjection;
     private Handler mHandler;
 
-    private PreferencesHelper mPrefHelper;
-    private File mPicturesDirectory;
     private ImageReader mImageReader;
     private int mWidth;
     private int mHeight;
 
-    private AsyncTask mUploadTask;
-
-    private Call<ResponseBody> mHavenCall;
-    private Call<ResponseBody> mEngineCall;
-
-    @Inject
-    DataManager mDataManager;
-    @Inject
-    HavenOcr mHavenOcrService;
-    @Inject
-    SwibrsService mSwibrService;
+    private ImageReader.OnImageAvailableListener imageAvailableListener;
+    private PreferencesHelper mPrefHelper;
+    private File mPicturesDirectory;
+    private EngineHandler mEngineHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
+
         Log.d(TAG, "onCreate");
         getActivityComponent().inject(this);
 
-        // Set Transparent layout
-        setContentView(R.layout.activity_capture);
-
         //Instanciate the PrefHelper
         mPrefHelper = new PreferencesHelper(this);
+
+        // Set Transparent layout
+        setContentView(R.layout.activity_capture);
 
         // Get the default public pictures directory
         mPicturesDirectory = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
 
-        // Create folder if missing
-        File storeDirectory = new File(mPicturesDirectory.getAbsolutePath());
-        if (!storeDirectory.exists()) {
-            boolean success = storeDirectory.mkdirs();
-            if (!success) {
-                Toast.makeText(this, R.string.CaptureFailedAccessDirectory, Toast.LENGTH_LONG).show();
-                Log.e(TAG, "Failed to create pictures directory.");
-                finish();
-                return;
-            }
-        }
-
-        //Get available content providers
-//        searchProviderTask = new SearchProviderTask(this);
-//        searchProviderTask.execute();
-
+        mEngineHandler = new EngineHandler(this);
 
         // Emulate capture on emulator
         if (AndroidComponentUtil.isRunningOnEmulator()) {
@@ -133,7 +87,6 @@ public class CaptureActivity extends BaseActivity {
             startCapture();
         }
     }
-
     /**
      * * Hanle Media Projection result.
      *
@@ -160,7 +113,15 @@ public class CaptureActivity extends BaseActivity {
 
                 mImageReader = ImageReader.newInstance(mWidth, mHeight, PixelFormat.RGBA_8888, 2);
                 mMediaProjection.createVirtualDisplay("screencap", mWidth, mHeight, density, flags, mImageReader.getSurface(), null, mHandler);
-                mImageReader.setOnImageAvailableListener(new ImageAvailableListener(), mHandler);
+
+                imageAvailableListener = new ImageReader.OnImageAvailableListener() {
+                    @Override
+                    public void onImageAvailable(ImageReader reader) {
+                        mEngineHandler.parseImageReader(reader);
+                    }
+                };
+
+                mImageReader.setOnImageAvailableListener(imageAvailableListener, mHandler);
 
                 moveTaskToBack(true);
                 stopCapture();
@@ -196,81 +157,6 @@ public class CaptureActivity extends BaseActivity {
     }
 
     /**
-     * Handle ImageReader result
-     */
-    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-
-            Context context = CaptureActivity.this;
-            Log.d(TAG, "onImageAvailable");
-            try {
-
-                Image image = mImageReader.acquireLatestImage();
-                Image.Plane[] planes = image.getPlanes();
-
-                ByteBuffer buffer = planes[0].getBuffer();
-                int pixelStride = planes[0].getPixelStride();
-                int rowStride = planes[0].getRowStride();
-                int rowPadding = rowStride - pixelStride * mWidth;
-
-                // Create bitmap
-                Bitmap bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
-                bitmap.copyPixelsFromBuffer(buffer);
-
-                // Save the bitmap as image
-                final File newImage = saveImage(bitmap);
-
-                analyzeImageFile(newImage);
-
-                // Stop Capture
-                mImageReader.close();
-
-//                mUploadTask.execute();
-
-                Log.d(TAG, "Swibr image completed: " + newImage.getAbsolutePath());
-                Toast.makeText(context, R.string.CaptureSucceeded, Toast.LENGTH_LONG).show();
-
-
-            } catch (Exception e) {
-                Log.e(TAG, "Swibr image capture fail cause", e);
-                Toast.makeText(context, R.string.CaptureFailed, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-//
-//    private Article getLastBrowserArticle() {
-//        Article article = null;
-//        List<String> providers = new ArrayList<>();
-//
-//        //TODO implement Browser history search url for android version < 6
-//
-//        Log.d(TAG, "getLastBrowserArticle");
-//
-//        try {
-////            providers = searchProviderTask.get();
-//        } catch (InterruptedException | ExecutionException e) {
-//            Log.e(TAG, Arrays.toString(e.getStackTrace()));
-//        }
-//
-//        for (String p : providers) {
-//            Uri uri;
-//            try {
-//                uri = Uri.parse(p);
-//                Log.d(TAG, "URI Provider : " + p);
-//
-//            } catch (NullPointerException e) {
-//                Log.e(TAG, "Error : " + e.getMessage());
-//            }
-//        }
-//
-//
-//        //TODO check what to do next
-//
-//        return article;
-//    }
-
-    /**
      * Dummy Capture for Emulator and UnitTest.
      */
     private void startCaptureTest() {
@@ -285,7 +171,7 @@ public class CaptureActivity extends BaseActivity {
             File newImage = getTestImage();
 
             // Analyze File
-            analyzeImageFile(newImage);
+            mEngineHandler.analyzeImageFile(newImage);
 
             Log.d(TAG, "[TEST] Swibr image completed: " + newImage.getAbsolutePath());
             Toast.makeText(context, "[TEST] Swibr capture succeeded!", Toast.LENGTH_LONG).show();
@@ -337,7 +223,6 @@ public class CaptureActivity extends BaseActivity {
         }.start();
     }
 
-
     private void stopCapture() {
 
         Log.d(TAG, "stopCapture");
@@ -354,122 +239,19 @@ public class CaptureActivity extends BaseActivity {
         });
     }
 
-    /**
-     * Run Image Capture Analyze
-     *
-     * @param file
-     */
-    private void analyzeImageFile(File file) {
-
-        ProgressRequestBody requestBody = ProgressRequestBody.createImage(
-                MediaType.parse("multipart/form-data"),
-                file,
-                new ProgressRequestBody.UploadCallbacks() {
-
-                    @Override
-                    public void onProgressUpdate(String path, int percent) {
-
-                    }
-
-                    @Override
-                    public void onError(int position) {
-                        Log.e(TAG, "haven onProgressUpdate Error at position : " + String.valueOf(position));
-                    }
-
-                    @Override
-                    public void onFinish(int position, String urlId) {
-                        Log.d(TAG, "Finished saving picture : " + urlId);
-                    }
-                }
-        );
-
-        String mode = getString(R.string.havenondemand_ocr_mode);
-        String apikey = getString(R.string.havenondemand_apikey);
-        String[] languages = new String[1];
-        languages[0] = "fr";
-
-        mHavenCall = mHavenOcrService.upload(requestBody, mode, languages, apikey);
-
-
-        Log.d(TAG, "makeHavenCall: Preparing");
-        mHavenCall.enqueue(new Callback<ResponseBody>() {
-
-            @Override
-            public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
-                TextResult textResult = null;
-                if (response.body() == null) {
-                    Log.e(TAG, "HavenCall onResponse: Null response from server");
-                    return;
-                }
-
-                try {
-                    String content = response.body().string();
-
-                    Log.d(TAG, "Body response : " + content);
-                    textResult = HavenAdapter.fromJson(content);
-
-                } catch (IOException e) {
-                    Log.e(TAG, "AnalyzeImageFile IOException caught : ", e);
-                }
-                Log.d(TAG, "Going for engine call");
-
-                if (textResult != null) {
-                    makeEngineCall(textResult);
-                } else
-                    Log.d(TAG, "Canceled engine call");
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                Log.e("analyzeImageFile", "onFailure", t);
-            }
-        });
+    private boolean hasPermission(String permission) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
+        }
+        return true;
     }
 
-    private void makeEngineCall(TextResult textResult) {
+    private boolean shoudAskPermission(String permission) {
+        return (mPrefHelper.getBoolean(permission, true));
+    }
 
-        String json = HavenAdapter.toJsonString(textResult);
-
-        mEngineCall = mSwibrService.search(json);
-
-        mEngineCall.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
-                String content = null;
-                Article article = null;
-
-                try {
-                    content = response.body().string();
-                    Log.d(TAG, "EngineCall onResponse : " + content);
-                } catch (IOException e) {
-                    Log.e(TAG, "EngineCall onResponse: IOException caught : ", e);
-                } catch (Exception e) {
-                    Log.e(TAG, "EngineCall onResponse: Something bad happened", e);
-                }
-
-                if (content == null) return;
-
-                try {
-                    article = ArticleAdapter.fromJson(content);
-                } catch (JsonSyntaxException e) {
-                    Log.e(TAG, "EngineCall: JsonSyntaxException", e);
-                }
-
-                if (article == null) return;
-
-                Log.d(TAG, "EngineCall: Saving article");
-
-                mDataManager.addSwibr(article)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe();
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                Log.e("Engine call", "onFailure", t);
-            }
-        });
+    private void markAsAsked(String permission) {
+        mPrefHelper.putBoolean(permission, false);
     }
 
     /**
@@ -500,6 +282,42 @@ public class CaptureActivity extends BaseActivity {
     }
 
     /**
+     * Save capture on user device.
+     *
+     * @param bitmap
+     * @return
+     * @throws IOException
+     */
+    private File saveImage(Bitmap bitmap) {
+
+        File dest = null;
+        FileOutputStream output = null;
+
+        try {
+
+            dest = getImageFile();
+            output = new FileOutputStream(dest);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
+
+        } catch (IOException e) {
+            Log.e(TAG, "Swibr image save fail cause", e);
+
+
+        } finally {
+
+            if (null != output) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "saveImage: IOException", e);
+                }
+            }
+        }
+
+        return dest;
+    }
+
+    /**
      * Generate capture file name and prepare file.
      *
      * @return
@@ -520,61 +338,37 @@ public class CaptureActivity extends BaseActivity {
         return file;
     }
 
-    /**
-     * Save capture on user device.
-     *
-     * @param bitmap
-     * @return
-     * @throws IOException
-     */
-    private File saveImage(Bitmap bitmap) throws IOException {
-
-        File dest = null;
-        FileOutputStream output = null;
-
-        try {
-
-            dest = getImageFile();
-            output = new FileOutputStream(dest);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
-
-        } catch (IOException e) {
-            Log.e(TAG, "Swibr image save fail cause", e);
-            throw e;
-
-        } finally {
-
-            if (null != output) {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    throw e;
-                }
-            }
-        }
-
-        return dest;
-    }
-
-    private boolean hasPermission(String permission) {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
-        }
-
-        return true;
-
-    }
-
-    private boolean shoudAskPermission(String permission) {
-        return (mPrefHelper.getBoolean(permission, true));
-    }
-
-    private void markAsAsked(String permission) {
-
-        mPrefHelper.putBoolean(permission, false);
-
-    }
+//
+//    private Article getLastBrowserArticle() {
+//        Article article = null;
+//        List<String> providers = new ArrayList<>();
+//
+//        //TODO implement Browser history search url for android version < 6
+//
+//        Log.d(TAG, "getLastBrowserArticle");
+//
+//        try {
+////            providers = searchProviderTask.get();
+//        } catch (InterruptedException | ExecutionException e) {
+//            Log.e(TAG, Arrays.toString(e.getStackTrace()));
+//        }
+//
+//        for (String p : providers) {
+//            Uri uri;
+//            try {
+//                uri = Uri.parse(p);
+//                Log.d(TAG, "URI Provider : " + p);
+//
+//            } catch (NullPointerException e) {
+//                Log.e(TAG, "Error : " + e.getMessage());
+//            }
+//        }
+//
+//
+//        //TODO check what to do next
+//
+//        return article;
+//    }
 
 
 }
