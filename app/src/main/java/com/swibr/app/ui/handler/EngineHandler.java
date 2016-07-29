@@ -119,12 +119,10 @@ public class EngineHandler {
         // Save the bitmap as image
         File newImage = saveImage(bitmap);
         ApplicationInfo appInfo = getLastUsedPackage();
-
+        Boolean saved = false;
         if (appInfo != null) {
-            //TODO : save swibe localy?
             //TODO : get intent info such as Bundle savedState
-            //TODO : post info to engine
-            //TODO : remove try/catch
+            //TODO : post info to engine?
 
             Log.d(TAG, "onImageAvailable: Saving app package info");
 
@@ -135,13 +133,16 @@ public class EngineHandler {
             article.packageName = appInfo.packageName;
             article.bundle = SerializeBundle(lastApp.getExtras());
 
-            mDataManager.addSwibr(article);
+            saved = !article.bundle.equals("");
+            if (saved)
+                mDataManager.addSwibr(article);
 
-        } else {
+        }
+
+        if (!saved) {
             Log.d(TAG, "parseImageReader: appInfo null, starting img analysis");
             analyzeImageFile(newImage);
         }
-
 
         // Stop Capture
         reader.close();
