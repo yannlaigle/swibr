@@ -10,8 +10,8 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import com.swibr.app.data.DataManager;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
 import com.swibr.app.data.remote.SwibrsService;
-import com.swibr.app.data.remote.OcrService;
 import com.swibr.app.injection.ApplicationContext;
 
 import static org.mockito.Mockito.mock;
@@ -62,7 +62,7 @@ public class ApplicationTestModule {
 
     @Provides
     @Singleton
-    OcrService provideOcrService() {
-        return mock(OcrService.class);
+    HavenOcr provideOcrService() {
+        return mock(HavenOcr.class);
     }
 }

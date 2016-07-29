@@ -16,7 +16,7 @@ import com.swibr.app.data.DataManager;
 import com.swibr.app.data.local.DatabaseHelper;
 import com.swibr.app.data.local.PreferencesHelper;
 import com.swibr.app.data.model.Article.Article;
-import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.test.common.TestDataFactory;
 import com.swibr.app.util.EventPosterHelper;
@@ -46,11 +46,11 @@ public class DataManagerTest {
     @Mock
     EventPosterHelper mEventPosterHelper;
     private DataManager mDataManager;
-    private OcrService mOcrService;
+    private HavenOcr mHavenOcrService;
 
     @Before
     public void setUp() {
-        mDataManager = new DataManager(mMockSwibrsService, mOcrService,
+        mDataManager = new DataManager(mMockSwibrsService, mHavenOcrService,
                 mMockPreferencesHelper, mMockDatabaseHelper, mEventPosterHelper);
     }
 

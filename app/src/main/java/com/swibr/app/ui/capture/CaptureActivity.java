@@ -37,7 +37,7 @@ import com.swibr.app.data.model.Article.Article;
 import com.swibr.app.data.model.Article.ArticleAdapter;
 import com.swibr.app.data.model.Haven.HavenAdapter;
 import com.swibr.app.data.model.Haven.TextResult;
-import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.util.AndroidComponentUtil;
@@ -46,9 +46,6 @@ import com.swibr.app.util.ProgressRequestBody;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 
 import javax.inject.Inject;
@@ -89,7 +86,7 @@ public class CaptureActivity extends BaseActivity {
     @Inject
     DataManager mDataManager;
     @Inject
-    OcrService mOcrService;
+    HavenOcr mHavenOcrService;
     @Inject
     SwibrsService mSwibrService;
 
@@ -388,7 +385,10 @@ public class CaptureActivity extends BaseActivity {
 
         String mode = getString(R.string.havenondemand_ocr_mode);
         String apikey = getString(R.string.havenondemand_apikey);
-        mHavenCall = mOcrService.upload(requestBody, mode, apikey);
+        String[] languages = new String[1];
+        languages[0] = "fr";
+
+        mHavenCall = mHavenOcrService.upload(requestBody, mode, languages, apikey);
 
 
         Log.d(TAG, "makeHavenCall: Preparing");

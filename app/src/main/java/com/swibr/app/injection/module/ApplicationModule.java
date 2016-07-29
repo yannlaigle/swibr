@@ -10,7 +10,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 
-import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.injection.ApplicationContext;
 
@@ -50,8 +50,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    OcrService provideOcrService() {
-        return OcrService.Creator.newOcrService();
+    HavenOcr provideOcrService() {
+        return HavenOcr.Creator.newHavenOcrService();
     }
 
 }

@@ -12,7 +12,7 @@ import com.swibr.app.data.DataManager;
 import com.swibr.app.data.SyncService;
 import com.swibr.app.data.local.DatabaseHelper;
 import com.swibr.app.data.local.PreferencesHelper;
-import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.injection.ApplicationContext;
 import com.swibr.app.injection.module.ApplicationModule;
@@ -26,7 +26,7 @@ public interface ApplicationComponent {
     @ApplicationContext Context context();
     Application application();
     SwibrsService swibrService();
-    OcrService ocrService();
+    HavenOcr ocrService();
     PreferencesHelper preferencesHelper();
     DatabaseHelper databaseHelper();
     DataManager dataManager();

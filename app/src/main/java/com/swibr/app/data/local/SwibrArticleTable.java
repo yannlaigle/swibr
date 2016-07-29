@@ -49,9 +49,10 @@ public abstract class SwibrArticleTable {
             "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_TITLE + " TEXT PRIMARY KEY, " +
                     COLUMN_DESCRIPTION + " TEXT, " +
-                    COLUMN_ID + " TEXT, " +
+                    COLUMN_ID + " INT, " +
                     COLUMN_IMGURL + " TEXT, " +
                     COLUMN_URL_ORIGIN + " TEXT, " +
+                    COLUMN_CREATED + " DATE, " +
                     COLUMN_URL_WEB + " TEXT); ";
 
     public static ContentValues toContentValues(Article article) {

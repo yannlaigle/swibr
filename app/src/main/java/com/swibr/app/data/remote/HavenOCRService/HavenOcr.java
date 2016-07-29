@@ -1,11 +1,9 @@
-package com.swibr.app.data.remote;
+package com.swibr.app.data.remote.HavenOCRService;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.ResponseBody;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.swibr.app.util.ProgressRequestBody;
-
-import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +16,7 @@ import retrofit.http.POST;
 import retrofit.http.Part;
 import retrofit.http.Query;
 
-public interface OcrService {
+public interface HavenOcr {
 
     // TODO
     // - https://community.idolondemand.com/t5/Wiki/Java-Calling-the-APIs/ta-p/288
@@ -33,12 +31,13 @@ public interface OcrService {
     Call<ResponseBody> upload(
             @Part("file\"; filename=\"image.jpg\" ") ProgressRequestBody file,
             @Query("mode") String mode,
+            @Query("languages") String[] languages,
             @Query("apikey") String apikey);
 
     /******** Helper class that sets up a new services *******/
     class Creator {
 
-        public static OcrService newOcrService() {
+        public static HavenOcr newHavenOcrService() {
 
             HttpLoggingInterceptor httpLogging = new HttpLoggingInterceptor();
             httpLogging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
@@ -49,13 +48,13 @@ public interface OcrService {
             httpClient.interceptors().add(httpLogging);
 
             Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(OcrService.ENDPOINT)
+                    .baseUrl(HavenOcr.ENDPOINT)
                     .addConverterFactory(GsonConverterFactory.create())
                     .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                     .client(httpClient)
                     .build();
 
-            return retrofit.create(OcrService.class);
+            return retrofit.create(HavenOcr.class);
         }
     }
 }

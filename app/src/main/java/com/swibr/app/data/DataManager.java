@@ -3,7 +3,7 @@ package com.swibr.app.data;
 import com.swibr.app.data.local.DatabaseHelper;
 import com.swibr.app.data.local.PreferencesHelper;
 import com.swibr.app.data.model.Article.Article;
-import com.swibr.app.data.remote.OcrService;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
 import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.util.EventPosterHelper;
 
@@ -20,16 +20,16 @@ import rx.functions.Func1;
 public class DataManager {
 
     private final SwibrsService mSwibrsService;
-    private final OcrService mOcrService;
+    private final HavenOcr mHavenOcrService;
     private final DatabaseHelper mDatabaseHelper;
     private final PreferencesHelper mPreferencesHelper;
     private final EventPosterHelper mEventPoster;
 
     @Inject
-    public DataManager(SwibrsService swibrsService, OcrService ocrService, PreferencesHelper preferencesHelper,
+    public DataManager(SwibrsService swibrsService, HavenOcr havenOcrService, PreferencesHelper preferencesHelper,
                        DatabaseHelper databaseHelper, EventPosterHelper eventPosterHelper) {
         mSwibrsService = swibrsService;
-        mOcrService = ocrService;
+        mHavenOcrService = havenOcrService;
         mPreferencesHelper = preferencesHelper;
         mDatabaseHelper = databaseHelper;
         mEventPoster = eventPosterHelper;
