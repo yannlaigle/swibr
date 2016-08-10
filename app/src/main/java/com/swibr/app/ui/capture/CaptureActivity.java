@@ -1,7 +1,10 @@
 package com.swibr.app.ui.capture;
 
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,6 +14,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
+import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
@@ -19,21 +23,50 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
 
+import com.google.gson.JsonSyntaxException;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.ResponseBody;
 import com.swibr.app.R;
+import com.swibr.app.data.DataManager;
 import com.swibr.app.data.local.PreferencesHelper;
+import com.swibr.app.data.model.Article.Article;
+import com.swibr.app.data.model.Article.ArticleAdapter;
+import com.swibr.app.data.model.Haven.HavenAdapter;
+import com.swibr.app.data.model.Haven.TextResult;
+import com.swibr.app.data.remote.HavenOCRService.HavenOcr;
+import com.swibr.app.data.remote.SwibrsService;
 import com.swibr.app.ui.base.BaseActivity;
 import com.swibr.app.ui.handler.EngineHandler;
 import com.swibr.app.util.AndroidComponentUtil;
+import com.swibr.app.util.ProgressRequestBody;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.inject.Inject;
+
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by hthetiot on 12/29/15.
@@ -49,6 +82,7 @@ public class CaptureActivity extends BaseActivity {
     private MediaProjectionManager mProjectionManager;
     private MediaProjection mMediaProjection;
     private Handler mHandler;
+    private PackageManager mPackageManager;
 
     private ImageReader mImageReader;
     private int mWidth;
@@ -57,7 +91,18 @@ public class CaptureActivity extends BaseActivity {
     private ImageReader.OnImageAvailableListener imageAvailableListener;
     private PreferencesHelper mPrefHelper;
     private File mPicturesDirectory;
-    private EngineHandler mEngineHandler;
+//    private EngineHandler mEngineHandler;
+
+
+    private Call<ResponseBody> mEngineCall;
+    private Call<ResponseBody> mHavenCall;
+
+    @Inject
+    HavenOcr mHavenOcrService;
+    @Inject
+    DataManager mDataManager;
+    @Inject
+    SwibrsService mSwibrService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +121,28 @@ public class CaptureActivity extends BaseActivity {
         mPicturesDirectory = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
 
-        mEngineHandler = new EngineHandler(this);
+
+        mPackageManager = getPackageManager();
+        // Get the default public pictures directory
+        mPicturesDirectory = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+
+        // Create folder if missing
+        File storeDirectory = new File(mPicturesDirectory.getAbsolutePath());
+        if (!storeDirectory.exists()) {
+            boolean success = storeDirectory.mkdirs();
+            if (!success) {
+                Toast.makeText(this, R.string.CaptureFailedAccessDirectory, Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Failed to create pictures directory.");
+                finish();
+            }
+        }
+
+        Point size = new Point();
+        getWindowManager().getDefaultDisplay().getSize(size);
+        mWidth = size.x;
+        mHeight = size.y;
+
 
         // Emulate capture on emulator
         if (AndroidComponentUtil.isRunningOnEmulator()) {
@@ -87,6 +153,7 @@ public class CaptureActivity extends BaseActivity {
             startCapture();
         }
     }
+
     /**
      * * Hanle Media Projection result.
      *
@@ -117,7 +184,7 @@ public class CaptureActivity extends BaseActivity {
                 imageAvailableListener = new ImageReader.OnImageAvailableListener() {
                     @Override
                     public void onImageAvailable(ImageReader reader) {
-                        mEngineHandler.parseImageReader(reader);
+                        parseImageReader(reader);
                     }
                 };
 
@@ -171,7 +238,7 @@ public class CaptureActivity extends BaseActivity {
             File newImage = getTestImage();
 
             // Analyze File
-            mEngineHandler.analyzeImageFile(newImage);
+            analyzeImageFile(newImage);
 
             Log.d(TAG, "[TEST] Swibr image completed: " + newImage.getAbsolutePath());
             Toast.makeText(context, "[TEST] Swibr capture succeeded!", Toast.LENGTH_LONG).show();
@@ -370,5 +437,255 @@ public class CaptureActivity extends BaseActivity {
 //        return article;
 //    }
 
+
+    /**
+     * Parse the onImageAvailble result
+     */
+    public void parseImageReader(ImageReader reader) {
+
+        Log.d(TAG, "parseImageReader: Starting");
+        Image image = reader.acquireLatestImage();
+        Image.Plane[] planes = image.getPlanes();
+
+        ByteBuffer buffer = planes[0].getBuffer();
+        int pixelStride = planes[0].getPixelStride();
+        int rowStride = planes[0].getRowStride();
+        int rowPadding = rowStride - pixelStride * mWidth;
+
+        // Create bitmap
+        Bitmap bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
+        bitmap.copyPixelsFromBuffer(buffer);
+
+        // Save the bitmap as image
+        File newImage = saveImage(bitmap);
+        ApplicationInfo appInfo = null;
+
+        try {
+            appInfo = getLastUsedPackage();
+        } catch (Exception e) {
+            Log.e(TAG, "parseImageReader: Exception", e);
+        }
+
+        Boolean saved = false;
+        if (appInfo != null) {
+            //TODO : get intent info such as Bundle savedState
+            //TODO : post info to engine?
+
+            Log.d(TAG, "onImageAvailable: Saving app package info");
+
+            Intent lastApp = mPackageManager.getLaunchIntentForPackage(appInfo.packageName);
+            if (lastApp != null) {
+
+                Article article = new Article();
+
+                article.type = "application";
+                article.packageName = appInfo.packageName;
+                article.bundle = SerializeBundle(lastApp.getExtras());
+
+                saved = !article.bundle.equals("");
+                if (saved)
+                    mDataManager.addSwibr(article);
+
+            } else
+                Log.d(TAG, "parseImageReader: Could not get last app Intent : " + appInfo.packageName);
+        }
+
+        if (!saved) {
+            Log.d(TAG, "parseImageReader: appInfo null, starting img analysis");
+            analyzeImageFile(newImage);
+        }
+
+        // Stop Capture
+        reader.close();
+
+        Log.d(TAG, "Swibr image completed: " + newImage.getAbsolutePath());
+        Toast.makeText(this, R.string.CaptureSucceeded, Toast.LENGTH_LONG).show();
+    }
+
+    private String SerializeBundle(Bundle bundle) {
+        String serialized = "";
+        Parcel parcel = Parcel.obtain();
+
+        try {
+            bundle.writeToParcel(parcel, 0);
+
+            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+            IOUtils.write(parcel.marshall(), byteArray);
+
+            return Base64.encodeToString(byteArray.toByteArray(), 0);
+
+        } catch (Exception e) {
+            Log.e(TAG, "SerializeBundle: Exception", e);
+        } finally {
+            parcel.recycle();
+        }
+
+        return serialized;
+
+    }
+
+    private ApplicationInfo getLastUsedPackage() {
+
+        //noinspection ResourceType
+        UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+        long time = System.currentTimeMillis();
+        // We get usage stats for the last 10 seconds
+        List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000 * 60, time);
+
+        if (stats == null) {
+            Log.e(TAG, "getLastUsedPackage: Could not get statistics info");
+            Toast.makeText(this, "Impossible de récupérer vos statistiques d'utilisation", Toast.LENGTH_LONG).show();
+            return null;
+        }
+
+        // Sort the stats by the last time used
+        SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+        for (UsageStats usageStats : stats) {
+            if (!usageStats.getPackageName().equals("com.swibr.app"))
+                mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+        }
+        if (mySortedMap.isEmpty())
+            return null;
+
+        UsageStats lastPackageUsed = mySortedMap.get(mySortedMap.lastKey());
+
+        //get a list of installed apps.
+        List<ApplicationInfo> packages = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        for (ApplicationInfo packageInfo : packages) {
+            if (lastPackageUsed.getPackageName().equals(packageInfo.packageName)) {
+                Log.d(TAG, "Installed package :" + packageInfo.packageName);
+                Log.d(TAG, "Source dir : " + packageInfo.sourceDir);
+                //Log.d(TAG, "Launch Activity :" + packageInfo.getLaunchIntentForPackage(packageInfo.packageName));
+                return packageInfo;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Run Image Capture Analyze
+     *
+     * @param file
+     */
+    public void analyzeImageFile(File file) {
+
+        if (file == null) {
+            Log.e(TAG, "analyzeImageFile: Cannot parse null file");
+            return;
+        }
+
+        ProgressRequestBody requestBody = ProgressRequestBody.createImage(
+                MediaType.parse("multipart/form-data"),
+                file,
+                new ProgressRequestBody.UploadCallbacks() {
+
+                    @Override
+                    public void onProgressUpdate(String path, int percent) {
+
+                    }
+
+                    @Override
+                    public void onError(int position) {
+                        Log.e(TAG, "haven onProgressUpdate Error at position : " + String.valueOf(position));
+                    }
+
+                    @Override
+                    public void onFinish(int position, String urlId) {
+                        Log.d(TAG, "Finished saving picture : " + urlId);
+                    }
+                }
+        );
+
+        String mode = getString(R.string.havenondemand_ocr_mode);
+        String apikey = getString(R.string.havenondemand_apikey);
+        String[] languages = new String[1];
+        languages[0] = "fr";
+
+        mHavenCall = mHavenOcrService.upload(requestBody, mode, languages, apikey);
+
+
+        Log.d(TAG, "makeHavenCall: Preparing");
+        mHavenCall.enqueue(new Callback<ResponseBody>() {
+
+            @Override
+            public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+                TextResult textResult = null;
+                if (response.body() == null) {
+                    Log.e(TAG, "HavenCall onResponse: Null response from server");
+                    return;
+                }
+
+                try {
+                    String content = response.body().string();
+
+                    Log.d(TAG, "Body response : " + content);
+                    textResult = HavenAdapter.fromJson(content);
+
+                } catch (IOException e) {
+                    Log.e(TAG, "AnalyzeImageFile IOException caught : ", e);
+                }
+                Log.d(TAG, "Going for engine call");
+
+                if (textResult != null) {
+                    makeEngineCall(textResult);
+                } else
+                    Log.d(TAG, "Canceled engine call");
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e("analyzeImageFile", "onFailure", t);
+            }
+        });
+    }
+
+
+    private void makeEngineCall(TextResult textResult) {
+
+        String json = HavenAdapter.toJsonString(textResult);
+
+        mEngineCall = mSwibrService.search(json);
+
+        mEngineCall.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Response<ResponseBody> response, Retrofit retrofit) {
+                String content = null;
+                Article article = null;
+
+                try {
+                    content = response.body().string();
+                    Log.d(TAG, "EngineCall onResponse : " + content);
+                } catch (IOException e) {
+                    Log.e(TAG, "EngineCall onResponse: IOException caught : ", e);
+                } catch (Exception e) {
+                    Log.e(TAG, "EngineCall onResponse: Something bad happened", e);
+                }
+
+                if (content == null) return;
+
+                try {
+                    article = ArticleAdapter.fromJson(content);
+                } catch (JsonSyntaxException e) {
+                    Log.e(TAG, "EngineCall: JsonSyntaxException", e);
+                }
+
+                if (article == null) return;
+
+                Log.d(TAG, "EngineCall: Saving article");
+
+                mDataManager.addSwibr(article)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe();
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e("Engine call", "onFailure", t);
+            }
+        });
+    }
 
 }

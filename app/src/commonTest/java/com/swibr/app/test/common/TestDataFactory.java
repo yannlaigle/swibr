@@ -10,6 +10,7 @@ import com.swibr.app.data.model.Article.Article;
  * Factory class that makes instances of data models with random field values.
  * The aim of this class is to help setting up test fixtures.
  */
+
 public class TestDataFactory {
 
     public static String randomUuid() {
@@ -17,7 +18,7 @@ public class TestDataFactory {
     }
 
     public static Article createArticle(String uniqueSuffix) {
-        return new Article(makeArticle(uniqueSuffix));
+        return makeArticle(uniqueSuffix);
     }
 
     public static List<Article> makeListArticles(int number) {

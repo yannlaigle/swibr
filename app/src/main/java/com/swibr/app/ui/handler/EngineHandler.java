@@ -73,6 +73,10 @@ public class EngineHandler {
     @Inject
     SwibrsService mSwibrService;
 
+    /**
+     * (unused because of crash, might be due to @Inject)
+     * @param activity
+     */
     public EngineHandler(BaseActivity activity) {
         mPackageManager = activity.getPackageManager();
         // Get the default public pictures directory
@@ -127,16 +131,20 @@ public class EngineHandler {
             Log.d(TAG, "onImageAvailable: Saving app package info");
 
             Intent lastApp = mPackageManager.getLaunchIntentForPackage(appInfo.packageName);
-            Article article = new Article();
+            if (lastApp != null) {
 
-            article.type = "application";
-            article.packageName = appInfo.packageName;
-            article.bundle = SerializeBundle(lastApp.getExtras());
+                Article article = new Article();
 
-            saved = !article.bundle.equals("");
-            if (saved)
-                mDataManager.addSwibr(article);
+                article.type = "application";
+                article.packageName = appInfo.packageName;
+                article.bundle = SerializeBundle(lastApp.getExtras());
 
+                saved = !article.bundle.equals("");
+                if (saved)
+                    mDataManager.addSwibr(article);
+
+            } else
+                Log.d(TAG, "parseImageReader: Could not get last app Intent : " + appInfo.packageName);
         }
 
         if (!saved) {
@@ -209,63 +217,6 @@ public class EngineHandler {
         }
 
         return null;
-    }
-
-    /**
-     * Save capture on user device.
-     *
-     * @param bitmap
-     * @return
-     * @throws IOException
-     */
-    private File saveImage(Bitmap bitmap) {
-
-        File dest = null;
-        FileOutputStream output = null;
-
-        try {
-
-            dest = getImageFile();
-            output = new FileOutputStream(dest);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
-
-        } catch (IOException e) {
-            Log.e(TAG, "Swibr image save fail cause", e);
-
-
-        } finally {
-
-            if (null != output) {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "saveImage: IOException", e);
-                }
-            }
-        }
-
-        return dest;
-    }
-
-    /**
-     * Generate capture file name and prepare file.
-     *
-     * @return
-     * @throws IOException
-     */
-    private File getImageFile() throws IOException {
-
-        String filename = "Swibr_" + System.nanoTime() + ".jpg";
-        File file = new File(mPicturesDirectory, filename);
-
-        if (!file.exists()) {
-            boolean success = file.createNewFile();
-            if (!success) {
-                Log.e(TAG, "Failed to create file: " + filename);
-            }
-        }
-
-        return file;
     }
 
     /**
@@ -343,6 +294,63 @@ public class EngineHandler {
                 Log.e("analyzeImageFile", "onFailure", t);
             }
         });
+    }
+
+    /**
+     * Save capture on user device.
+     *
+     * @param bitmap
+     * @return
+     * @throws IOException
+     */
+    private File saveImage(Bitmap bitmap) {
+
+        File dest = null;
+        FileOutputStream output = null;
+
+        try {
+
+            dest = getImageFile();
+            output = new FileOutputStream(dest);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
+
+        } catch (IOException e) {
+            Log.e(TAG, "Swibr image save fail cause", e);
+
+
+        } finally {
+
+            if (null != output) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "saveImage: IOException", e);
+                }
+            }
+        }
+
+        return dest;
+    }
+
+    /**
+     * Generate capture file name and prepare file.
+     *
+     * @return
+     * @throws IOException
+     */
+    private File getImageFile() throws IOException {
+
+        String filename = "Swibr_" + System.nanoTime() + ".jpg";
+        File file = new File(mPicturesDirectory, filename);
+
+        if (!file.exists()) {
+            boolean success = file.createNewFile();
+            if (!success) {
+                Log.e(TAG, "Failed to create file: " + filename);
+            }
+        }
+
+        return file;
     }
 
     private void makeEngineCall(TextResult textResult) {
